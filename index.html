@@ -1,0 +1,2385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de OKRs</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+:root{
+  --ink:#1B2430;
+  --ink-soft:#4B5666;
+  --paper:#EEF1F4;
+  --surface:#FFFFFF;
+  --surface-2:#E3E7EC;
+  --line:#D7DCE2;
+  --teal:#2F6F62;
+  --teal-tint:#E4EEEB;
+  --amber:#C98A2C;
+  --amber-tint:#F8ECD8;
+  --crimson:#B23A3A;
+  --crimson-tint:#F6E2E1;
+  --sage:#3F8B5C;
+  --sage-tint:#E4EFE7;
+  --radius-s:6px;
+  --radius-m:10px;
+}
+html[data-theme="dark"]{
+  --ink:#ECEFF3;
+  --ink-soft:#9AA4B2;
+  --paper:#12161C;
+  --surface:#1B212A;
+  --surface-2:#242C37;
+  --line:#323C48;
+  --teal:#59B39F;
+  --teal-tint:#1E3530;
+  --amber:#E0A94E;
+  --amber-tint:#3A2E17;
+  --crimson:#E58080;
+  --crimson-tint:#3A1E1E;
+  --sage:#6FC08D;
+  --sage-tint:#1E3324;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  min-height:100vh;
+  transition:background 0.15s ease, color 0.15s ease;
+}
+h1,h2,h3,.serif{font-family:'Fraunces',serif;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;font-size:14px;background:var(--surface);color:var(--ink);}
+::selection{background:var(--teal-tint);}
+
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--teal);outline-offset:2px;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+}
+
+.wrap{max-width:1160px;margin:0 auto;padding:28px 20px 80px;}
+
+/* ---------- Header ---------- */
+header.top{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  gap:16px;flex-wrap:wrap;
+  border-bottom:2px solid var(--ink);
+  padding-bottom:18px;margin-bottom:22px;
+}
+.brand-line{display:flex;align-items:baseline;gap:10px;}
+.brand-mark{
+  width:14px;height:14px;border-radius:3px;background:var(--teal);
+  display:inline-block;transform:rotate(45deg);flex-shrink:0;
+}
+h1.title{font-size:28px;font-weight:600;margin:0;letter-spacing:-0.01em;}
+.subtitle{color:var(--ink-soft);font-size:13.5px;margin-top:4px;}
+.top-controls{display:flex;gap:10px;align-items:center;}
+.btn{
+  border:1px solid var(--ink);background:var(--ink);color:var(--paper);
+  padding:9px 16px;border-radius:var(--radius-s);font-weight:600;font-size:13.5px;
+  transition:transform 0.12s ease;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn.secondary{background:var(--surface);color:var(--ink);border-color:var(--line);}
+.btn.ghost{background:transparent;color:var(--ink-soft);border-color:transparent;padding:9px 10px;}
+.btn.small{padding:6px 11px;font-size:12.5px;}
+.btn.danger{background:var(--crimson-tint);color:var(--crimson);border-color:var(--crimson-tint);}
+
+/* ---------- Identity bar ---------- */
+.identity-bar{
+  display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-soft);
+  margin-bottom:22px;flex-wrap:wrap;
+}
+.identity-bar input{
+  border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-s);
+  padding:6px 10px;font-size:12.5px;width:160px;
+}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--sage);flex-shrink:0;}
+.sync-dot.syncing{background:var(--amber);}
+.theme-toggle{margin-left:6px;}
+
+/* ---------- Summary strip ---------- */
+.summary{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--radius-m);
+  overflow:hidden;margin-bottom:20px;
+}
+.summary .cell{background:var(--surface);padding:18px 20px;}
+.summary .cell .num{font-family:'Fraunces',serif;font-size:32px;font-weight:600;line-height:1;}
+.summary .cell .lbl{font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
+.summary .cell.ontrack .num{color:var(--sage);}
+.summary .cell.risk .num{color:var(--amber);}
+.summary .cell.late .num{color:var(--crimson);}
+
+/* ---------- Momentum by sector ---------- */
+.momentum{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);
+  padding:18px 22px;margin-bottom:22px;
+}
+.momentum h2{font-size:15px;font-weight:600;margin:0 0 14px;}
+.momentum-row{display:flex;align-items:center;gap:14px;padding:6px 0;}
+.momentum-row .sname{width:190px;flex-shrink:0;font-size:12.5px;font-weight:500;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.momentum-track{flex:1;height:8px;background:var(--surface-2);border-radius:5px;overflow:hidden;}
+.momentum-fill{height:100%;border-radius:5px;background:var(--teal);}
+.momentum-pct{width:42px;text-align:right;font-size:12px;color:var(--ink-soft);flex-shrink:0;}
+.momentum-empty{font-size:12.5px;color:var(--ink-soft);}
+
+/* ---------- Main tabs ---------- */
+.main-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:20px;}
+.main-tab{
+  padding:10px 18px;background:transparent;border:none;border-bottom:2px solid transparent;
+  font-size:14px;font-weight:600;color:var(--ink-soft);margin-bottom:-1px;
+}
+.main-tab.active{color:var(--ink);border-bottom-color:var(--ink);}
+
+/* ---------- Sector filter tabs ---------- */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center;}
+.tab{
+  padding:6px 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);
+  font-size:12.5px;font-weight:500;color:var(--ink-soft);display:flex;align-items:center;gap:7px;
+}
+.tab .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.tab.active{border-color:var(--ink);color:var(--ink);background:var(--surface-2);}
+.tab.add{border-style:dashed;color:var(--ink-soft);}
+.tab.remove{border-style:dashed;color:var(--crimson);border-color:var(--crimson-tint);}
+
+/* ---------- Sector groups ---------- */
+.sector-group{margin-bottom:24px;}
+.sector-head{
+  display:flex;align-items:center;gap:10px;margin-bottom:10px;
+  padding-bottom:8px;border-bottom:1px solid var(--line);
+}
+.sector-head .dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.sector-head h3{font-size:16px;font-weight:600;margin:0;flex:1;}
+.sector-head .count{font-size:12px;color:var(--ink-soft);}
+.sector-empty-note{font-size:12.5px;color:var(--ink-soft);padding:10px 2px 4px;}
+
+/* ---------- Objective card ---------- */
+.obj-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);
+  margin-bottom:10px;overflow:hidden;
+}
+.obj-head{display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer;}
+.obj-head .chev{color:var(--ink-soft);font-size:12px;transition:transform 0.15s ease;flex-shrink:0;}
+.obj-card.open .obj-head .chev{transform:rotate(90deg);}
+.obj-main{flex:1;min-width:0;}
+.obj-title{font-weight:600;font-size:15px;margin:0;}
+.obj-meta{display:flex;gap:12px;margin-top:5px;flex-wrap:wrap;align-items:center;}
+.obj-meta span{font-size:12px;color:var(--ink-soft);}
+.obj-meta .deadline{font-weight:600;}
+.obj-meta .deadline.overdue{color:var(--crimson);}
+.status-pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;flex-shrink:0;white-space:nowrap;}
+.status-pill.ontrack{background:var(--sage-tint);color:var(--sage);}
+.status-pill.risk{background:var(--amber-tint);color:var(--amber);}
+.status-pill.late{background:var(--crimson-tint);color:var(--crimson);}
+.obj-progress-num{font-family:'Fraunces',serif;font-size:20px;font-weight:600;width:56px;text-align:right;flex-shrink:0;}
+.obj-progress-track{width:90px;height:7px;background:var(--surface-2);border-radius:4px;overflow:hidden;flex-shrink:0;}
+.obj-progress-fill{height:100%;border-radius:4px;}
+
+.obj-body{padding:0 18px 18px;border-top:1px solid var(--line);}
+.kr-row{padding:14px 0;border-bottom:1px dashed var(--line);}
+.kr-row:last-of-type{border-bottom:none;}
+.kr-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.kr-title{font-size:13.5px;font-weight:500;flex:1;min-width:180px;}
+.kr-value{font-size:12.5px;color:var(--ink-soft);white-space:nowrap;}
+.kr-dates{font-size:11.5px;color:var(--ink-soft);margin-top:4px;}
+.kr-track{width:100%;height:6px;background:var(--surface-2);border-radius:4px;overflow:hidden;margin-top:8px;}
+.kr-fill{height:100%;border-radius:4px;}
+.kr-controls{display:flex;gap:8px;align-items:flex-end;margin-top:9px;flex-wrap:wrap;}
+.kr-controls input[type=number]{width:80px;border:1px solid var(--line);border-radius:var(--radius-s);padding:6px 8px;font-size:13px;}
+.kr-controls input[type=text]{flex:1;min-width:130px;border:1px solid var(--line);border-radius:var(--radius-s);padding:6px 8px;font-size:13px;}
+.mini-label{display:flex;flex-direction:column;font-size:10px;color:var(--ink-soft);gap:3px;}
+.mini-label input[type=date]{border:1px solid var(--line);border-radius:var(--radius-s);padding:5px 6px;font-size:12px;width:128px;}
+.spark{margin-top:8px;display:block;}
+.checkin-log{margin-top:8px;}
+.checkin-item{font-size:11.5px;color:var(--ink-soft);padding:3px 0;}
+.checkin-item b{color:var(--ink);font-weight:600;}
+.obj-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.add-kr-row{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+.add-kr-grid{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
+
+/* ---------- AI chat ---------- */
+
+/* ===== CONSULTOR GLOBAL DE OKRs ===== */
+.okr-global-consultant-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9998;
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 20px;
+  background: #111827;
+  color: #fff;
+  font: 700 14px/1.2 inherit;
+  box-shadow: 0 10px 28px rgba(0,0,0,.22);
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.okr-global-consultant-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(0,0,0,.28);
+}
+.okr-global-consultant-btn:active { transform: translateY(0); }
+
+.okr-global-consultant-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 24px;
+  background: rgba(15,23,42,.28);
+}
+.okr-global-consultant-overlay.open { display: flex; }
+
+.okr-global-consultant {
+  width: min(560px, calc(100vw - 32px));
+  height: min(720px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--card, #fff);
+  color: var(--text, #111827);
+  box-shadow: 0 24px 70px rgba(0,0,0,.28);
+}
+.okr-global-consultant-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(127,127,127,.18);
+}
+.okr-global-consultant-title {
+  font-size: 17px;
+  font-weight: 800;
+}
+.okr-global-consultant-subtitle {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: .68;
+}
+.okr-global-consultant-close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 22px;
+  cursor: pointer;
+  opacity: .7;
+}
+.okr-global-consultant-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+}
+.okr-global-consultant-welcome {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(127,127,127,.09);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.okr-global-consultant-input {
+  display: flex;
+  gap: 8px;
+  padding: 14px;
+  border-top: 1px solid rgba(127,127,127,.18);
+}
+.okr-global-consultant-input textarea {
+  flex: 1;
+  min-height: 44px;
+  max-height: 130px;
+  resize: vertical;
+  border: 1px solid rgba(127,127,127,.3);
+  border-radius: 10px;
+  padding: 11px 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+.okr-global-consultant-input button {
+  align-self: flex-end;
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 15px;
+  background: #111827;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.okr-global-consultant-input button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.okr-global-consultant-status {
+  padding: 8px 18px 0;
+  font-size: 11px;
+  opacity: .65;
+}
+.okr-global-msg {
+  margin: 0 0 12px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  max-width: 90%;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.okr-global-msg.user {
+  margin-left: auto;
+  background: rgba(127,127,127,.12);
+}
+.okr-global-msg.assistant {
+  margin-right: auto;
+  background: rgba(127,127,127,.07);
+}
+@media (max-width: 640px) {
+  .okr-global-consultant-btn {
+    right: 14px;
+    bottom: 14px;
+    padding: 12px 16px;
+  }
+  .okr-global-consultant-overlay {
+    padding: 10px;
+  }
+  .okr-global-consultant {
+    width: 100%;
+    height: calc(100vh - 20px);
+    border-radius: 16px;
+  }
+}
+
+.ai-chat{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;}
+.ai-chat-log{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:9px;padding-right:4px;}
+.ai-msg{font-size:12.5px;padding:8px 11px;border-radius:9px;max-width:88%;line-height:1.45;white-space:pre-wrap;}
+.ai-msg.user{align-self:flex-end;background:var(--teal-tint);color:var(--ink);}
+.ai-msg.assistant{align-self:flex-start;background:var(--surface-2);color:var(--ink);}
+.ai-msg.pending{opacity:0.65;font-style:italic;}
+.ai-chat-empty{font-size:12px;color:var(--ink-soft);font-style:italic;}
+.ai-chat-input-row{display:flex;gap:8px;}
+.ai-chat-input-row input{flex:1;border:1px solid var(--line);border-radius:var(--radius-s);padding:7px 10px;font-size:12.5px;}
+.kr-ai-toggle{margin-left:auto;}
+
+/* ---------- Local AI status ---------- */
+.ai-local-status{
+  display:flex;align-items:center;gap:7px;font-size:11px;color:var(--ink-soft);
+  margin-bottom:8px;padding:6px 8px;border:1px solid var(--line);
+  border-radius:var(--radius-s);background:var(--surface);
+}
+.ai-local-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0;}
+.ai-local-dot.ready{background:var(--sage);}
+.ai-local-dot.error{background:var(--crimson);}
+.ai-local-progress{height:3px;background:var(--surface-2);border-radius:3px;overflow:hidden;flex:1;min-width:60px;}
+.ai-local-progress-fill{height:100%;width:0;background:var(--teal);transition:width .2s ease;}
+.ai-local-actions{margin-left:auto;}
+.ai-local-actions button{border:0;background:transparent;color:var(--ink-soft);font-size:11px;padding:2px 4px;}
+
+/* ---------- Empty state ---------- */
+.empty{text-align:center;padding:50px 20px;color:var(--ink-soft);border:1px dashed var(--line);border-radius:var(--radius-m);background:var(--surface);}
+.empty h3{color:var(--ink);margin-bottom:8px;}
+
+/* ---------- Datas Próximas ---------- */
+.upcoming-row{display:flex;align-items:center;gap:16px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius-m);background:var(--surface);margin-bottom:10px;flex-wrap:wrap;}
+.upcoming-row.overdue{border-color:var(--crimson);background:var(--crimson-tint);}
+.upcoming-main{flex:1;min-width:220px;}
+.upcoming-title{font-weight:600;font-size:14.5px;}
+.upcoming-meta{display:flex;gap:10px;font-size:12px;color:var(--ink-soft);margin-top:5px;align-items:center;flex-wrap:wrap;}
+.upcoming-progress{width:130px;display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:var(--ink-soft);flex-shrink:0;}
+.upcoming-deadline{width:150px;text-align:right;font-size:12.5px;font-weight:600;color:var(--ink-soft);flex-shrink:0;}
+.text-crimson{color:var(--crimson) !important;}
+.sector-tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+
+/* ---------- Árvore ---------- */
+.tree-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.tree-hint{font-size:12px;color:var(--ink-soft);}
+.tree-canvas-wrap{border:1px solid var(--line);border-radius:var(--radius-m);background:var(--surface);height:640px;overflow:auto;position:relative;}
+.tree-canvas{position:relative;width:1700px;height:1300px;
+  background-image:radial-gradient(circle, var(--surface-2) 1px, transparent 1px);
+  background-size:22px 22px;
+}
+.tree-card{
+  position:absolute;width:260px;background:var(--surface);border:1px solid var(--line);
+  border-top:4px solid var(--teal);border-radius:var(--radius-s);padding:13px 14px;
+  box-shadow:0 1px 3px rgba(20,25,32,0.08);cursor:grab;touch-action:none;user-select:none;
+}
+.tree-card.dragging{cursor:grabbing;box-shadow:0 8px 20px rgba(20,25,32,0.3);z-index:20;}
+.tree-card-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+.tree-card-title{font-size:13.5px;font-weight:600;margin:0 0 6px;}
+.tree-dates{font-size:11px;color:var(--ink-soft);}
+.tree-deadline{font-size:11px;font-weight:600;color:var(--ink-soft);margin-top:2px;}
+.tree-deadline.overdue{color:var(--crimson);}
+.tree-pct{font-size:11px;color:var(--ink-soft);margin-top:4px;}
+.tree-krs{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);}
+.tree-kr{margin-bottom:8px;}
+.tree-kr:last-child{margin-bottom:0;}
+.tree-kr-title{font-size:11px;color:var(--ink-soft);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tree-kr-empty{font-size:11px;color:var(--ink-soft);font-style:italic;}
+
+/* ---------- Modal ---------- */
+.overlay{position:fixed;inset:0;background:rgba(10,13,17,0.55);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow-y:auto;}
+.overlay.show{display:flex;}
+.modal{background:var(--surface);border-radius:var(--radius-m);padding:24px;width:100%;max-width:460px;border:1px solid var(--line);}
+.modal h2{font-size:18px;margin:0 0 16px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:var(--radius-s);padding:9px 11px;color:var(--ink);}
+.field textarea{resize:vertical;min-height:60px;}
+.field-row{display:flex;gap:10px;}
+.field-row .field{flex:1;}
+.color-picks{display:flex;gap:8px;flex-wrap:wrap;}
+.color-pick{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;}
+.color-pick.selected{border-color:var(--ink);}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+.sector-del-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);}
+.sector-del-row .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.sector-del-row .sname{flex:1;font-size:13.5px;}
+.sector-del-row .scount{font-size:11.5px;color:var(--ink-soft);white-space:nowrap;}
+
+footer.note{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:40px;}
+
+@media (max-width:640px){
+  .summary{grid-template-columns:repeat(2,1fr);}
+  .momentum-row .sname{width:110px;}
+  .obj-progress-track{display:none;}
+  .field-row{flex-direction:column;}
+}
+
+/* --- Sugestões de UX/UI --- */
+body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--teal) var(--surface);
+}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background-color: var(--teal); border-radius: 20px; }
+
+.obj-card {
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  border-radius: var(--radius-m);
+}
+.obj-card.open {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  border-color: var(--teal);
+}
+.obj-head { padding: 18px 22px; }
+.tree-card { box-shadow: 0 4px 12px rgba(20,25,32,0.06); border-radius: 12px; }
+.okr-global-msg { line-height: 1.6; }
+
+
+/* ---------- Fase 2: leitura dos OKRs ---------- */
+.obj-card{padding:0;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;contain:layout paint;}
+.obj-card:hover{border-color:color-mix(in srgb,var(--teal) 38%,var(--line));}
+.obj-card.open{box-shadow:0 10px 28px rgba(20,25,32,.08);}
+.obj-head{padding:16px 18px;align-items:flex-start;min-height:104px;}
+.obj-main{display:flex;flex-direction:column;justify-content:center;min-width:0;}
+.obj-title-row{display:flex;align-items:center;gap:10px;min-width:0;}
+.obj-title{font-size:15px;line-height:1.35;letter-spacing:-.01em;}
+.obj-toggle-hint{font-size:10.5px;color:var(--ink-soft);border:1px solid var(--line);border-radius:999px;padding:3px 7px;white-space:nowrap;opacity:.82;}
+.obj-head:hover .obj-toggle-hint{color:var(--teal);border-color:var(--teal);}
+.obj-kr-summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px;}
+.kr-summary-item,.kr-summary-status{font-size:10.5px;color:var(--ink-soft);}
+.kr-summary-item strong{color:var(--ink);font-weight:700;}
+.kr-summary-status{display:inline-flex;align-items:center;gap:3px;font-weight:600;}
+.kr-summary-status.ontrack{color:var(--sage);}.kr-summary-status.risk{color:var(--amber);}.kr-summary-status.late{color:var(--crimson);}
+.obj-score{display:flex;align-items:center;gap:10px;flex:0 0 auto;margin-top:3px;}
+.obj-progress-track{width:100px;height:7px;}
+.obj-progress-num{font-family:'Fraunces',serif;font-size:19px;font-weight:700;min-width:42px;text-align:right;}
+.obj-head>.status-pill{margin-top:4px;flex:0 0 auto;}
+.obj-detail-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0 10px;border-bottom:1px solid var(--line);}
+.detail-kicker{display:block;text-transform:uppercase;letter-spacing:.09em;font-size:10px;font-weight:700;color:var(--teal);margin-bottom:2px;}
+.obj-detail-heading strong{font-size:13px;}
+.detail-count{font-size:11px;color:var(--ink-soft);background:var(--surface-2);padding:4px 8px;border-radius:999px;}
+.kr-empty{padding:16px 0;color:var(--ink-soft);font-size:12.5px;}
+.kr-row{padding:16px 0;}
+.kr-row:first-of-type{padding-top:14px;}
+.kr-title{font-size:13px;font-weight:600;line-height:1.4;}
+.kr-value{font-size:12px;}
+.kr-track{height:7px;margin-top:9px;}
+.kr-controls{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:9px;margin-top:11px;}
+.kr-controls input[type=number],.kr-controls input[type=text]{background:var(--surface);min-height:34px;}
+
+/* ---------- Fase 3: performance percebida ---------- */
+.initial-loading{position:fixed;inset:0;z-index:10000;background:var(--paper);display:grid;place-items:center;padding:28px;transition:opacity .2s ease,visibility .2s ease;}
+.app-ready .initial-loading{opacity:0;visibility:hidden;pointer-events:none;}
+.loading-shell{width:min(760px,100%);}
+.loading-label{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);font-size:12px;color:var(--ink-soft);white-space:nowrap;}
+.skeleton{position:relative;overflow:hidden;background:var(--surface-2);border-radius:8px;}
+.skeleton::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--surface) 65%,transparent),transparent);animation:skeleton-shimmer 1.15s infinite;}
+.skeleton-eyebrow{width:110px;height:11px;margin-bottom:12px;}
+.skeleton-title{width:min(520px,80%);height:38px;border-radius:10px;}
+.skeleton-copy{width:min(620px,92%);height:15px;margin-top:10px;}
+.skeleton-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:28px;}
+.skeleton-card{height:106px;}
+.skeleton-attention{height:116px;margin-top:18px;}
+@keyframes skeleton-shimmer{100%{transform:translateX(100%);}}
+@media (prefers-reduced-motion:reduce){.skeleton::after{animation:none;}}
+@media (max-width:780px){
+  .obj-head{flex-wrap:wrap;}
+  .obj-main{flex-basis:calc(100% - 28px);}
+  .obj-score{margin-left:26px;order:3;flex:1;}
+  .obj-head>.status-pill{order:4;margin-left:26px;}
+  .obj-progress-track{flex:1;width:auto;}
+}
+@media (max-width:640px){
+  .obj-head{padding:14px;gap:9px;min-height:0;}
+  .obj-title-row{align-items:flex-start;flex-direction:column;gap:5px;}
+  .obj-toggle-hint{align-self:flex-start;}
+  .obj-kr-summary{gap:6px;}
+  .obj-score{width:calc(100% - 26px);margin-left:26px;}
+  .obj-head>.status-pill{margin-left:26px;}
+  .skeleton-grid{grid-template-columns:repeat(2,1fr);}
+  .skeleton-card{height:96px;}
+  .loading-label{bottom:5%;font-size:11px;}
+}
+
+/* ---------- Fases 4–7: diagnóstico, interação, IA contextual e design system ---------- */
+:root{--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;--shadow-soft:0 8px 24px rgba(20,25,32,.06);--shadow-focus:0 12px 32px rgba(20,25,32,.11);}
+.view-heading{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin:0 0 18px;}
+.view-heading h2{font-size:22px;line-height:1.15;margin:2px 0 5px;letter-spacing:-.02em;}
+.view-heading p:not(.eyebrow){margin:0;color:var(--ink-soft);font-size:13px;max-width:720px;}
+.diagnostic-badge{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 10px;font-size:11px;font-weight:600;color:var(--ink-soft);white-space:nowrap;}
+.momentum{box-shadow:var(--shadow-soft);}
+.momentum-insights{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.insight-card{border:1px solid var(--line);border-radius:var(--radius-s);padding:13px 14px;background:var(--surface-2);display:grid;grid-template-columns:1fr auto;column-gap:10px;align-items:center;}
+.insight-card.attention{background:var(--amber-tint);border-color:color-mix(in srgb,var(--amber) 25%,var(--line));}
+.insight-label{font-size:11px;color:var(--ink-soft);grid-column:1/-1;text-transform:uppercase;letter-spacing:.04em;}
+.insight-card strong{font-size:17px;line-height:1.2;margin-top:2px;}
+.insight-card small{font-size:11px;color:var(--ink-soft);grid-column:1/-1;}
+.momentum-list{display:grid;gap:8px;}
+.diagnostic-row{display:block;width:100%;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface);text-align:left;padding:12px 14px;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;}
+.diagnostic-row:hover{transform:translateY(-1px);box-shadow:var(--shadow-soft);border-color:var(--ink-soft);}
+.momentum-sector-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.momentum-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+.momentum-sector-head .sname{width:auto;flex:1;}
+.momentum-status{font-size:10.5px;font-weight:600;padding:3px 7px;border-radius:999px;background:var(--surface-2);color:var(--ink-soft);}
+.momentum-status.risk{background:var(--amber-tint);color:var(--amber);}.momentum-status.late{background:var(--crimson-tint);color:var(--crimson);}.momentum-status.good{background:var(--sage-tint);color:var(--sage);}
+.momentum-meta{display:flex;gap:12px;align-items:center;margin-top:7px;color:var(--ink-soft);font-size:10.5px;flex-wrap:wrap;}.momentum-meta strong{font-size:12px;color:var(--ink);}
+.tree-heading{margin-bottom:14px;}.tree-toolbar{flex-wrap:wrap;padding:10px 0;}
+.tree-search{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--ink-soft);margin-left:auto;}.tree-search input{width:220px;border:1px solid var(--line);border-radius:999px;padding:7px 11px;outline:none;}.tree-search input:focus{border-color:var(--teal);}
+.tree-canvas-wrap{box-shadow:var(--shadow-soft);}
+.tree-card{transition:box-shadow .15s ease,opacity .15s ease,filter .15s ease;}.tree-card:hover{box-shadow:var(--shadow-focus);}.tree-card-muted{opacity:.25;filter:saturate(.4);}.tree-card-title.tree-open{display:block;width:100%;border:0;background:transparent;text-align:left;padding:0;color:var(--ink);font:inherit;font-weight:600;cursor:pointer;}.tree-card-title.tree-open:hover{text-decoration:underline;text-underline-offset:3px;}
+.proximas-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}.proximas-summary>div{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-s);padding:12px 14px;}.proximas-summary strong{font-family:'Fraunces',serif;font-size:22px;display:block;line-height:1.05;}.proximas-summary span{font-size:11px;color:var(--ink-soft);}
+.upcoming-row{width:100%;text-align:left;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;}.upcoming-row:hover{transform:translateY(-1px);box-shadow:var(--shadow-soft);}.upcoming-deadline span{margin-left:5px;}
+.ai-quick-prompts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px;}.ai-prompt{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);border-radius:999px;padding:5px 9px;font-size:10.5px;cursor:pointer;}.ai-prompt:hover{border-color:var(--teal);color:var(--ink);}
+/* Fase 7 — consistência visual */
+.btn,.tab,.main-tab,.cell,.attention-item,.obj-card,.upcoming-row,.diagnostic-row,.tree-card,.ai-chat,.summary,.momentum,.empty{transition:box-shadow .15s ease,transform .12s ease,border-color .15s ease,background .15s ease;}
+.cell.clickable:hover{box-shadow:var(--shadow-soft);position:relative;z-index:1;}
+.main-tab{min-height:42px;}.main-tab.active{font-weight:700;}
+@media (max-width:760px){
+  .wrap{padding:20px 14px 56px;}
+  .view-heading{display:block;}.diagnostic-badge{display:inline-block;margin-top:10px;}
+  .momentum-insights,.proximas-summary{grid-template-columns:1fr;}
+  .tree-search{width:100%;margin-left:0;}.tree-search input{flex:1;width:auto;min-width:0;}
+  .tree-toolbar .tree-hint{width:100%;}.tree-canvas-wrap{height:560px;}
+  .momentum-meta{gap:8px;}
+  .upcoming-row{display:block;}.upcoming-progress{width:100%;margin-top:10px;}.upcoming-deadline{width:auto;text-align:left;margin-top:8px;}
+}
+
+/* Reincorporated UX styles */
+/* ---------- Fase 1: impacto imediato ---------- */
+.page-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin:4px 0 18px;}
+.page-intro .eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin:0 0 4px;}
+.page-intro h2{font-size:clamp(24px,3vw,32px);line-height:1.1;margin:0;}
+.page-intro p{margin:7px 0 0;color:var(--ink-soft);font-size:13px;max-width:620px;}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;background:transparent;border:0;margin-bottom:18px;overflow:visible;}
+.summary .cell{position:relative;text-align:left;border:1px solid var(--line);border-radius:var(--radius-m);padding:17px 18px;background:var(--surface);min-height:106px;box-shadow:0 2px 10px rgba(20,25,32,.035);transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease,background .15s ease;}
+.summary .cell.clickable{appearance:none;width:100%;font:inherit;color:inherit;cursor:pointer;}
+.summary .cell.clickable:hover{transform:translateY(-2px);border-color:var(--teal);box-shadow:0 7px 18px rgba(20,25,32,.08);}
+.summary .cell.active{border-color:var(--ink);background:var(--surface-2);box-shadow:0 0 0 2px color-mix(in srgb,var(--ink) 12%,transparent);}
+.summary .cell .metric-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.summary .cell .metric-icon{font-size:18px;line-height:1;}
+.summary .cell .num{font-size:30px;}
+.summary .cell .lbl{font-size:12.5px;margin-top:7px;}
+.summary .cell .hint{font-size:11px;color:var(--ink-soft);margin-top:8px;}
+.summary .cell.avg .num{color:var(--ink);}
+.summary .cell.ontrack .metric-icon{color:var(--sage);}
+.summary .cell.risk .metric-icon{color:var(--amber);}
+.summary .cell.late .metric-icon{color:var(--crimson);}
+.summary .cell.ontrack .num{color:var(--sage);}
+.summary .cell.risk .num{color:var(--amber);}
+.summary .cell.late .num{color:var(--crimson);}
+.attention{border:1px solid var(--line);border-radius:var(--radius-m);background:var(--surface);margin:0 0 22px;padding:18px 20px;box-shadow:0 2px 10px rgba(20,25,32,.025);}
+.attention-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px;}
+.attention-kicker{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin:0 0 3px;}
+.attention h2{font-size:19px;margin:0;}
+.attention-head p{font-size:12px;color:var(--ink-soft);margin:3px 0 0;}
+.attention-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.attention-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);cursor:pointer;text-align:left;color:inherit;font:inherit;transition:border-color .15s ease,background .15s ease,transform .15s ease;}
+.attention-item:hover{border-color:var(--teal);background:var(--surface);transform:translateY(-1px);}
+.attention-icon{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;font-weight:700;flex:0 0 auto;}
+.attention-item.late .attention-icon{background:var(--crimson-tint);color:var(--crimson);}
+.attention-item.risk .attention-icon{background:var(--amber-tint);color:var(--amber);}
+.attention-copy{min-width:0;flex:1;}
+.attention-title{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.attention-meta{font-size:11px;color:var(--ink-soft);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.attention-status{font-size:10.5px;font-weight:700;white-space:nowrap;}
+.attention-item.late .attention-status{color:var(--crimson);}
+.attention-item.risk .attention-status{color:var(--amber);}
+.attention-empty{display:flex;align-items:center;gap:10px;padding:10px 0;color:var(--ink-soft);font-size:12.5px;}
+.attention-empty .ok-icon{color:var(--sage);font-size:18px;}
+.status-pill{display:inline-flex;align-items:center;gap:5px;}
+.status-pill .status-icon{font-size:12px;font-weight:700;line-height:1;}
+.filter-context{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 14px;}
+.filter-context .label{font-size:12px;color:var(--ink-soft);}
+.filter-clear{border:0;background:transparent;color:var(--teal);font:inherit;font-size:12px;font-weight:600;padding:4px 6px;cursor:pointer;}
+.filter-clear:hover{text-decoration:underline;}
+@media (max-width:640px){
+  .page-intro{align-items:flex-start;flex-direction:column;gap:8px;}
+  .summary{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .summary .cell{min-height:98px;padding:14px;}
+  .attention-list{grid-template-columns:1fr;}
+}
+
+>
+/* ---------- Fases 4–7: contraste, legibilidade e árvore estável ---------- */
+html[data-theme="dark"]{
+  --ink:#F4F7FA;
+  --ink-soft:#C0CAD6;
+  --paper:#0F141A;
+  --surface:#181F28;
+  --surface-2:#252F3B;
+  --line:#3A4654;
+  --teal:#73D0B8;
+  --teal-tint:#17372F;
+  --amber:#F2BD61;
+  --amber-tint:#403016;
+  --crimson:#FF9292;
+  --crimson-tint:#401F22;
+  --sage:#7DDB9D;
+  --sage-tint:#183B27;
+}
+html[data-theme="dark"] body{color:var(--ink);}
+html[data-theme="dark"] .eyebrow,
+html[data-theme="dark"] .page-intro .eyebrow,
+html[data-theme="dark"] .attention-kicker{color:var(--teal);}
+html[data-theme="dark"] .page-intro h2,
+html[data-theme="dark"] .attention h2,
+html[data-theme="dark"] .view-heading h2{color:#FFFFFF;}
+html[data-theme="dark"] .summary .cell,
+html[data-theme="dark"] .attention,
+html[data-theme="dark"] .momentum,
+html[data-theme="dark"] .obj-card,
+html[data-theme="dark"] .tree-card,
+html[data-theme="dark"] .tree-canvas-wrap{box-shadow:0 6px 22px rgba(0,0,0,.22);}
+html[data-theme="dark"] .summary .cell .num{color:#FFFFFF !important;-webkit-text-fill-color:#FFFFFF;}
+html[data-theme="dark"] .summary .cell.ontrack .num{color:var(--sage) !important;-webkit-text-fill-color:var(--sage);}
+html[data-theme="dark"] .summary .cell.risk .num{color:var(--amber) !important;-webkit-text-fill-color:var(--amber);}
+html[data-theme="dark"] .summary .cell.late .num{color:var(--crimson) !important;-webkit-text-fill-color:var(--crimson);}
+.summary .cell .num{font-weight:700;line-height:1.05;display:block;color:var(--ink);}
+.summary .cell .lbl{color:var(--ink);font-weight:600;}
+.summary .cell .hint{color:var(--ink-soft);}
+html[data-theme="dark"] .summary .cell.active{border-color:var(--teal);background:#202A35;box-shadow:0 0 0 2px rgba(115,208,184,.18);}
+.attention{padding:20px;}
+.attention-head{margin-bottom:14px;}
+.attention-list{grid-template-columns:1fr 1fr;gap:10px;}
+.attention-item{min-width:0;background:var(--surface-2);border-color:var(--line);}
+.attention-item:first-child{grid-column:1 / -1;}
+.attention-rank{width:22px;height:22px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:var(--ink-soft);flex:0 0 auto;background:var(--surface);}
+.attention-icon{width:28px;height:28px;}
+html[data-theme="dark"] .attention-item{background:#202832;}
+html[data-theme="dark"] .attention-item:hover{background:#28333F;border-color:var(--teal);}
+html[data-theme="dark"] .attention-status{color:var(--ink) !important;}
+html[data-theme="dark"] .attention-item.late .attention-status{color:var(--crimson) !important;}
+html[data-theme="dark"] .attention-item.risk .attention-status{color:var(--amber) !important;}
+.tree-toolbar{flex-wrap:wrap;padding:10px;border:1px solid var(--line);border-radius:var(--radius-m);background:var(--surface);}
+.tree-search{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:11px;color:var(--ink-soft);}
+.tree-search input{min-width:220px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;}
+.tree-hint{flex-basis:100%;}
+.tree-canvas-wrap{height:640px;overflow:auto;overscroll-behavior:contain;}
+.tree-canvas{min-width:1700px;min-height:1300px;}
+.tree-card{width:280px;padding:14px;background:var(--surface);border-color:var(--line);color:var(--ink);}
+.tree-card-muted{opacity:.18;filter:saturate(.35);pointer-events:none;}
+.tree-card-title{display:block;width:100%;padding:0;border:0;background:transparent;color:var(--ink);text-align:left;font:inherit;font-size:14px;line-height:1.35;font-weight:700;margin:0 0 10px;}
+.tree-card-title:hover{color:var(--teal);}
+.tree-owner{display:flex;flex-direction:column;gap:1px;margin-bottom:7px;}
+.tree-owner span,.tree-section-label{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:700;}
+.tree-owner strong{font-size:11.5px;color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tree-dates,.tree-deadline,.tree-pct,.tree-kr-title{color:var(--ink-soft);}
+.tree-progress-line{display:flex;align-items:center;gap:8px;margin-top:9px;}
+.tree-progress-line .obj-progress-track{flex:1;width:auto;}
+.tree-progress-line strong{font-family:'Fraunces',serif;font-size:16px;color:var(--ink);min-width:40px;text-align:right;}
+.tree-krs{margin-top:12px;}
+.tree-section-label{margin-bottom:7px;}
+.tree-kr{padding:7px 0;border-top:1px dashed var(--line);margin:0;}
+.tree-kr-title{font-size:10.5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
+.tree-kr-meta{display:flex;justify-content:space-between;font-size:9.5px;color:var(--ink-soft);}
+.tree-kr-empty{padding:7px 0;font-size:10.5px;color:var(--ink-soft);}
+html[data-theme="dark"] .tree-card-title{color:#FFFFFF;}
+html[data-theme="dark"] .tree-owner strong,
+html[data-theme="dark"] .tree-progress-line strong{color:#FFFFFF;}
+html[data-theme="dark"] .tree-canvas{background-image:radial-gradient(circle,#34404D 1px,transparent 1px);}
+@media(max-width:760px){
+  .summary{grid-template-columns:1fr 1fr;}
+  .attention-list{grid-template-columns:1fr;}
+  .attention-item:first-child{grid-column:auto;}
+  .tree-toolbar{align-items:stretch;}
+  .tree-search{margin-left:0;width:100%;}
+  .tree-search input{min-width:0;flex:1;}
+}
+@media(prefers-reduced-motion:reduce){.summary .cell,.attention-item,.tree-card{transition:none !important;}}
+
+
+/* ---------- Refinamento: Dark Mode + Mobile ---------- */
+html[data-theme="dark"] .momentum,
+html[data-theme="dark"] .momentum-insights .insight-card,
+html[data-theme="dark"] .momentum-row,
+html[data-theme="dark"] .diagnostic-row{background:#151C24;color:var(--ink);}
+html[data-theme="dark"] .momentum-row{border:1px solid #344150;border-radius:12px;padding:13px 14px;margin:8px 0;box-shadow:none;}
+html[data-theme="dark"] .momentum-row:hover{background:#1C2631;border-color:#6FD2BA;}
+html[data-theme="dark"] .momentum-row .sname{color:#F5F7FA;font-weight:700;}
+html[data-theme="dark"] .momentum-sector-head{color:#F5F7FA;}
+html[data-theme="dark"] .momentum-meta,
+html[data-theme="dark"] .momentum-meta span{color:#C9D2DC;}
+html[data-theme="dark"] .momentum-meta strong{color:#FFFFFF;}
+html[data-theme="dark"] .momentum-track{background:#303B48;border:1px solid #414E5D;}
+html[data-theme="dark"] .momentum-status{background:#26313D;border:1px solid #465464;color:#F1F4F7;}
+html[data-theme="dark"] .momentum-status.good{color:#9BE5B5;border-color:#356047;background:#183025;}
+html[data-theme="dark"] .momentum-status.risk{color:#FFD27D;border-color:#71582A;background:#342A17;}
+html[data-theme="dark"] .momentum-status.late{color:#FFB0B0;border-color:#743A40;background:#351D21;}
+html[data-theme="dark"] .momentum-dot{box-shadow:0 0 0 3px #27323E;}
+html[data-theme="dark"] .insight-card .insight-label{color:#BFCBD7;}
+html[data-theme="dark"] .insight-card strong{color:#FFFFFF;}
+html[data-theme="dark"] .insight-card small{color:#C6D0DA;}
+
+html[data-theme="dark"] .upcoming-row{background:#151C24;border-color:#394655;color:#F4F7FA;box-shadow:none;}
+html[data-theme="dark"] .upcoming-row:hover{background:#1C2631;border-color:#6FD2BA;}
+html[data-theme="dark"] .upcoming-title{color:#FFFFFF;font-weight:700;}
+html[data-theme="dark"] .upcoming-meta{color:#C7D1DC;}
+html[data-theme="dark"] .upcoming-deadline{color:#E5EBF1;}
+html[data-theme="dark"] .upcoming-progress span{color:#C7D1DC;}
+html[data-theme="dark"] .upcoming-row.overdue{background:#2C1D21;border-color:#9B4C55;}
+html[data-theme="dark"] .sector-tag{filter:saturate(.9);border:1px solid rgba(255,255,255,.16);}
+html[data-theme="dark"] .proximas-summary>div{background:#151C24;border-color:#394655;}
+html[data-theme="dark"] .proximas-summary strong{color:#FFFFFF;}
+html[data-theme="dark"] .proximas-summary span{color:#C7D1DC;}
+
+/* Mobile: leitura em blocos, toque confortável e menos compressão */
+@media (max-width:780px){
+  .container{padding-left:14px!important;padding-right:14px!important;}
+  h1.title{font-size:23px;line-height:1.15;}
+  .subtitle{font-size:12.5px;line-height:1.5;}
+  .top-controls{gap:6px;flex-wrap:wrap;}
+  .top-controls .btn{min-height:40px;padding:9px 12px;}
+  .identity-bar{font-size:12px;margin-bottom:16px;}
+  .identity-bar input{width:min(100%,180px);min-height:38px;}
+  .theme-toggle{margin-left:auto;}
+  .main-tabs{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;gap:2px;position:sticky;top:0;z-index:8;background:var(--paper);padding-top:3px;}
+  .main-tabs::-webkit-scrollbar{display:none;}
+  .main-tab{white-space:nowrap;min-height:44px;padding:10px 14px;font-size:12px;}
+  .tabs{overflow-x:auto;display:flex;flex-wrap:nowrap;gap:6px;padding-bottom:5px;scroll-snap-type:x proximity;scrollbar-width:thin;}
+  .tabs .tab{flex:0 0 auto;min-height:40px;scroll-snap-align:start;}
+  .summary{gap:1px;border-radius:12px;}
+  .summary .cell{min-height:108px;padding:15px 13px;}
+  .summary .cell .num{font-size:28px;line-height:1.1;}
+  .summary .cell .lbl{font-size:11.5px;line-height:1.3;}
+  .attention{padding:15px;}
+  .attention-item{padding:12px;min-height:72px;}
+  .attention-item:first-child{grid-column:auto;}
+  .view-heading{gap:10px;margin-bottom:14px;}
+  .view-heading h2{font-size:19px;}
+  .view-heading p:not(.eyebrow){font-size:12px;line-height:1.45;}
+  .diagnostic-badge{font-size:10px;padding:5px 8px;}
+
+  .momentum{padding:14px 12px;border-radius:12px;}
+  .momentum-insights{grid-template-columns:1fr;gap:8px;}
+  .insight-card{padding:12px 13px;display:grid;grid-template-columns:1fr auto;grid-template-areas:"label value" "small value";align-items:center;}
+  .insight-card .insight-label{grid-area:label;}
+  .insight-card strong{grid-area:value;font-size:18px;max-width:150px;text-align:right;overflow:hidden;text-overflow:ellipsis;}
+  .insight-card small{grid-area:small;}
+  .momentum-row{gap:8px;display:block;padding:12px 10px;margin:7px 0;border-radius:10px;}
+  .momentum-sector-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;}
+  .momentum-row .sname{width:auto;font-size:13px;}
+  .momentum-status{font-size:10px;padding:4px 7px;white-space:nowrap;}
+  .momentum-track{margin:10px 0 7px;height:8px;}
+  .momentum-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 8px;font-size:10.5px;}
+  .momentum-meta strong{font-size:13px;}
+
+  #proximasList{display:flex;flex-direction:column;gap:8px;}
+  .upcoming-row{display:grid;grid-template-columns:1fr auto;gap:10px;padding:13px;border-radius:11px;margin:0;align-items:start;}
+  .upcoming-main{min-width:0;grid-column:1/-1;}
+  .upcoming-title{font-size:14px;line-height:1.35;overflow-wrap:anywhere;}
+  .upcoming-meta{gap:6px;font-size:10.5px;line-height:1.35;}
+  .upcoming-progress{width:100%;grid-column:1/-1;display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;font-size:10.5px;}
+  .upcoming-progress .obj-progress-track{display:block!important;min-width:0;}
+  .upcoming-deadline{width:auto;text-align:left;font-size:11.5px;grid-column:1/-1;padding-top:2px;border-top:1px solid var(--line);}
+  .proximas-summary{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}
+  .proximas-summary>div{padding:10px 7px;min-height:72px;}
+  .proximas-summary strong{font-size:20px;}
+  .proximas-summary span{font-size:9.5px;line-height:1.25;}
+
+  .obj-card{border-radius:12px;}
+  .obj-head{padding:14px;}
+  .obj-title{font-size:14px;line-height:1.4;}
+  .obj-kr-summary{gap:5px;margin-top:7px;}
+  .kr-summary-item,.kr-summary-status{font-size:10px;}
+  .obj-detail-heading{padding:13px 0 9px;}
+  .kr-row{padding:13px 0;}
+  .kr-controls{padding:8px;overflow-x:auto;}
+  .kr-controls input,.kr-controls button{min-height:38px;}
+
+  .tree-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+  .tree-toolbar .tree-search{grid-column:1/-1;order:-1;}
+  .tree-toolbar .btn{min-height:40px;}
+  .tree-hint{grid-column:1/-1;font-size:10.5px;line-height:1.4;}
+  .tree-canvas-wrap{height:calc(100vh - 250px);min-height:460px;border-radius:11px;}
+  .tree-canvas{width:1100px;height:1050px;background-size:18px 18px;}
+  .tree-card{width:230px;padding:12px;border-radius:10px;}
+  .tree-card-title{font-size:13px;line-height:1.35;}
+  .tree-dates,.tree-deadline,.tree-pct,.tree-kr-title,.tree-kr-empty{font-size:10px;}
+}
+@media (max-width:420px){
+  .container{padding-left:10px!important;padding-right:10px!important;}
+  .summary .cell{min-height:96px;padding:12px 10px;}
+  .summary .cell .num{font-size:25px;}
+  .summary .cell .lbl{font-size:10.5px;}
+  .momentum-row .sname{font-size:12px;}
+  .momentum-status{font-size:9px;max-width:110px;overflow:hidden;text-overflow:ellipsis;}
+  .proximas-summary strong{font-size:18px;}
+  .proximas-summary span{font-size:9px;}
+  .obj-head{padding:12px;}
+  .obj-score{margin-left:22px;width:calc(100% - 22px);}
+  .obj-head>.status-pill{margin-left:22px;}
+}
+
+</style>
+</head>
+<body class="app-loading">
+
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand-line">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1 class="title">Painel de OKRs</h1>
+        <div class="subtitle">Metas da Diretoria e de todos os setores, acompanhadas em conjunto</div>
+      </div>
+    </div>
+    <div class="top-controls">
+      <button class="btn secondary theme-toggle" id="themeToggleBtn">🌙 Modo escuro</button>
+      <button class="btn" id="newObjBtn">+ Novo objetivo</button>
+    </div>
+  </header>
+
+  <div class="identity-bar">
+    <span class="sync-dot" id="syncDot" title="Sincronizado com a equipe"></span>
+    <span id="syncLabel">Sincronizado com a equipe</span>
+    <span style="margin-left:auto;">Você é:</span>
+    <input type="text" id="userNameInput" placeholder="seu nome" maxlength="40">
+  </div>
+
+  <div class="initial-loading" id="initialLoading" role="status" aria-live="polite" aria-label="Carregando Planner de OKRs">
+    <div class="loading-shell">
+      <div class="skeleton skeleton-eyebrow"></div>
+      <div class="skeleton skeleton-title"></div>
+      <div class="skeleton skeleton-copy"></div>
+      <div class="skeleton-grid">
+        <div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>
+      </div>
+      <div class="skeleton skeleton-attention"></div>
+    </div>
+    <span class="loading-label">Preparando seu panorama de OKRs…</span>
+  </div>
+
+  <section class="page-intro" aria-labelledby="dashboardHeading">
+    <div>
+      <p class="eyebrow">Visão executiva</p>
+      <h2 id="dashboardHeading">Como a empresa está avançando?</h2>
+      <p>Uma leitura rápida dos OKRs para identificar o que está no ritmo e onde a equipe precisa agir.</p>
+    </div>
+  </section>
+
+  <section class="summary" id="summaryStrip" aria-label="Resumo dos OKRs"></section>
+  <section class="attention" id="attentionCenter" aria-labelledby="attentionHeading"></section>
+
+  <!-- Ritmo view -->
+  <section id="ritmoView" style="display:none;">
+    <section class="momentum diagnostic-panel">
+      <div class="view-heading"><div><p class="eyebrow">Diagnóstico operacional</p><h2>Onde o ritmo está acelerando — e onde está travando</h2><p>Compare progresso, risco e proximidade de prazo por setor para decidir onde concentrar energia.</p></div><span class="diagnostic-badge">Leitura por setor</span></div>
+      <div id="momentumInsights" class="momentum-insights"></div>
+      <div id="momentumList" class="momentum-list"></div>
+    </section>
+  </section>
+
+  <nav class="main-tabs" id="mainTabs">
+    <button class="main-tab" data-main-tab="painel">Painel</button>
+    <button class="main-tab" data-main-tab="ritmo">Ritmo por Setor</button>
+    <button class="main-tab" data-main-tab="arvore">Árvore</button>
+    <button class="main-tab" data-main-tab="proximas">Datas Próximas</button>
+  </nav>
+
+  <!-- Painel view -->
+  <section id="painelView">
+    <div class="tabs" id="sectorTabs"></div>
+    <section id="objectivesArea"></section>
+  </section>
+
+  <!-- Árvore view -->
+  <section id="arvoreView" style="display:none;">
+    <div class="view-heading tree-heading"><div><p class="eyebrow">Visão espacial</p><h2>Árvore de OKRs</h2><p>Organize os objetivos visualmente e abra um objetivo para aprofundar o acompanhamento.</p></div><span class="diagnostic-badge">Interação direta</span></div>
+    <div class="tree-toolbar">
+      <button class="btn small secondary" id="autoArrangeBtn">Reorganizar cards</button>
+      <button class="btn small secondary" id="treeFocusBtn">Focar atenção</button>
+      <label class="tree-search"><span>Buscar</span><input id="treeSearchInput" type="search" placeholder="Objetivo ou responsável…" autocomplete="off"></label>
+      <span class="tree-hint">Arraste os cards para reorganizar o painel visual</span>
+    </div>
+    <div class="tree-canvas-wrap">
+      <div class="tree-canvas" id="treeCanvas"></div>
+    </div>
+  </section>
+
+  <!-- Datas Próximas view -->
+  <section id="proximasView" style="display:none;">
+    <div class="view-heading"><div><p class="eyebrow">Cadência</p><h2>Próximos prazos</h2><p>Veja o que precisa de atenção primeiro e entre direto no objetivo correspondente.</p></div></div>
+    <div id="proximasSummary" class="proximas-summary"></div>
+    <div id="proximasList"></div>
+  </section>
+
+  <footer class="note">IA local no navegador · sem API e sem créditos. O primeiro uso exigirá o download de um modelo ultra-leve (~cerca de 350 MB). Os dados têm fallback para o armazenamento local do navegador.</footer>
+</div>
+
+<!-- New / Edit Objective Modal -->
+<div class="overlay" id="objModalOverlay">
+  <div class="modal">
+    <h2 id="objModalTitle">Novo objetivo</h2>
+    <div class="field">
+      <label for="objTitleInput">Objetivo</label>
+      <input type="text" id="objTitleInput" placeholder="Ex: Expandir presença institucional">
+    </div>
+    <div class="field">
+      <label for="objSectorSelect">Setor</label>
+      <select id="objSectorSelect"></select>
+    </div>
+    <div class="field">
+      <label for="objOwnerInput">Responsável</label>
+      <input type="text" id="objOwnerInput" placeholder="Ex: Maria Silva">
+    </div>
+    <div class="field">
+      <label for="objBattleSelect">Batalha do Planejamento Estratégico</label>
+      <select id="objBattleSelect">
+        <option value="Jornada na Cria">Jornada na Cria</option>
+        <option value="Desenvolvimento Sustentável">Desenvolvimento Sustentável</option>
+        <option value="Diversidade e Inclusão">Diversidade e Inclusão</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="objStartInput">Data de início</label>
+        <input type="date" id="objStartInput">
+      </div>
+      <div class="field">
+        <label for="objEndInput">Data de término</label>
+        <input type="date" id="objEndInput">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost small" id="objCancelBtn">Cancelar</button>
+      <button class="btn small" id="objSaveBtn">Criar objetivo</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Sector Modal -->
+<div class="overlay" id="sectorModalOverlay">
+  <div class="modal">
+    <h2>Novo setor</h2>
+    <div class="field">
+      <label for="sectorNameInput">Nome do setor</label>
+      <input type="text" id="sectorNameInput" placeholder="Ex: Operações">
+    </div>
+    <div class="field">
+      <label>Cor</label>
+      <div class="color-picks" id="colorPicks"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost small" id="sectorCancelBtn">Cancelar</button>
+      <button class="btn small" id="sectorSaveBtn">Criar setor</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Sector Modal -->
+<div class="overlay" id="sectorDeleteModalOverlay">
+  <div class="modal">
+    <h2>Excluir setores</h2>
+    <div id="sectorDeleteList"></div>
+    <div class="modal-actions">
+      <button class="btn ghost small" id="sectorDeleteCloseBtn">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal (replaces native confirm(), which is blocked in this sandbox) -->
+<div class="overlay" id="confirmModalOverlay">
+  <div class="modal">
+    <h2>Confirmar ação</h2>
+    <p id="confirmModalMessage" style="font-size:13.5px;color:var(--ink-soft);margin:0 0 4px;"></p>
+    <div class="modal-actions">
+      <button class="btn ghost small" id="confirmCancelBtn">Cancelar</button>
+      <button class="btn danger small" id="confirmOkBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notifications (replaces native alert(), which is blocked in this sandbox) -->
+<div id="toastBox" style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;align-items:center;"></div>
+
+
+<!-- Firebase (Banco de Dados em Tempo Real) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+(function(){
+
+
+const SECTOR_COLORS = ['#2F6F62','#C98A2C','#5B6EE1','#B23A3A','#8A5FBF','#3F8B5C','#227C9D','#946B3D'];
+const STORAGE_KEY = 'okr-workspace';
+const NAME_KEY = 'okr-user-name';
+const THEME_KEY = 'okr-theme';
+
+/* ---------- Configuração do Banco de Dados (Firebase) ---------- */
+// IMPORTANTE: Para o modo colaborativo funcionar, cole abaixo as chaves do seu projeto Firebase.
+// Sem essas chaves, o painel continuará funcionando no modo local (offline).
+const firebaseConfig = {
+  apiKey: "AIzaSyBixi4gELNdaukKs2uUcn3RiXKtopp7qyI",
+  authDomain: "okr-s-dff97.firebaseapp.com",
+  databaseURL: "https://okr-s-dff97-default-rtdb.firebaseio.com",
+  projectId: "okr-s-dff97",
+  storageBucket: "okr-s-dff97.firebasestorage.app",
+  messagingSenderId: "622958348085",
+  appId: "1:622958348085:web:8e1e9079f44fcf1b15ae7c",
+  measurementId: "G-CJFJBFGTR9"
+};
+
+let isFirebaseActive = false;
+let firebaseDB = null;
+
+try {
+  if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI") {
+    firebase.initializeApp(firebaseConfig);
+    firebaseDB = firebase.database();
+    isFirebaseActive = true;
+  }
+} catch(e) {
+  console.warn("Erro ao iniciar Firebase. O painel operará em modo local.", e);
+}
+
+
+let state = null;
+let stateVersionSeen = null;
+let mainTab = 'painel';
+let activeSectorFilter = 'all';
+let activeStatusFilter = 'all';
+let openObjectiveIds = new Set();
+let openChatKeys = new Set();
+let chatMessages = {};
+let editLock = false;
+let editingObjId = null;
+let userName = '';
+
+/* ---------- Local AI (WebLLM / WebGPU) ---------- */
+const LOCAL_AI_MODEL = 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC';
+let localAIEngine = null;
+let localAILoading = null;
+let localAIError = null;
+
+function aiStatusId(key){ return 'ai-status-'+String(key).replace(/[^a-zA-Z0-9_-]/g,'_'); }
+
+async function initLocalAI(onProgress) {
+  if (localAIEngine) return localAIEngine;
+  if (localAILoading) return localAILoading;
+
+  if (!navigator.gpu) {
+    throw new Error('WebGPU não está disponível neste navegador.');
+  }
+
+  localAILoading = (async () => {
+    const webllm = await import('https://esm.run/@mlc-ai/web-llm@0.2.84');
+
+    localAIEngine = await webllm.CreateMLCEngine(LOCAL_AI_MODEL, {
+      initProgressCallback: (progress) => {
+        if (onProgress) onProgress(progress);
+      }
+    });
+
+    return localAIEngine;
+  })();
+
+  try {
+    return await localAILoading;
+  } catch (error) {
+    localAIEngine = null;
+    throw error;
+  } finally {
+    localAILoading = null;
+  }
+}
+
+function updateAIStatus(key, text, stateClass='', progress=null){
+  const el = document.getElementById(aiStatusId(key));
+  if(!el) return;
+  const dot = el.querySelector('.ai-local-dot');
+  const label = el.querySelector('.ai-local-label');
+  const fill = el.querySelector('.ai-local-progress-fill');
+  if(dot){ dot.className='ai-local-dot '+stateClass; }
+  if(label) label.textContent=text;
+  if(fill && progress!=null) fill.style.width=clamp(Number(progress)*100,0,100)+'%';
+}
+
+function buildGlobalOKRContextRaw(){
+  return state.objectives.map(o=>{
+    const sec=sectorById(o.sectorId);
+    const op=objProgress(o);
+    const krs=o.krs.map(k=>`[KR: ${k.title} - ${clamp(krProgress(k),0,100)}%]`).join(' ');
+    return `Obj:"${o.title}" | Batalha:${o.battle||'-'} | Progresso:${op}% | ${krs}`;
+  }).join('\n');
+}
+function buildGlobalOKRContext() {
+  const raw = buildGlobalOKRContextRaw();
+  return raw.length > 18000
+    ? raw.slice(0, 18000) + '\n[Contexto resumido para manter a resposta rápida.]'
+    : raw;
+}
+
+function uid(){ return 'id-' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function clamp(n,min,max){ return Math.max(min,Math.min(max,n)); }
+function daysBetween(fromISO, toISO){
+  const a = new Date(fromISO + 'T00:00:00');
+  const b = new Date(toISO + 'T00:00:00');
+  return Math.round((b-a)/86400000);
+}
+function formatDateBR(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function deadlineText(endDate){
+  if(!endDate) return '';
+  const diff = daysBetween(todayISO(), endDate);
+  if(diff < 0) return `Atrasado há ${-diff} dia${-diff!==1?'s':''}`;
+  if(diff === 0) return 'Vence hoje';
+  if(diff === 1) return 'Vence amanhã';
+  return `Vence em ${diff} dias`;
+}
+function isOverdue(pct, endDate){ return !!(endDate && endDate < todayISO() && pct < 100); }
+
+/* ---------- Custom confirm / toast (native confirm/alert are blocked in this sandbox) ---------- */
+let confirmResolver = null;
+function askConfirm(message){
+  return new Promise(resolve=>{
+    confirmResolver = resolve;
+    document.getElementById('confirmModalMessage').textContent = message;
+    editLock = true;
+    document.getElementById('confirmModalOverlay').classList.add('show');
+  });
+}
+function resolveConfirm(result){
+  document.getElementById('confirmModalOverlay').classList.remove('show');
+  editLock = false;
+  if(confirmResolver){ const r = confirmResolver; confirmResolver = null; r(result); }
+}
+function showToast(msg, type){
+  const box = document.getElementById('toastBox');
+  if(!box) return;
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = `background:${type==='error'?'var(--crimson)':'var(--ink)'};color:var(--paper);padding:10px 18px;border-radius:8px;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,0.25);max-width:320px;text-align:center;`;
+  box.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 3800);
+}
+
+/* ---------- Seed data ---------- */
+function seedSectors(){
+  const defs = [
+    ['Presidência','#1B2430'],['VPGG','#3A4A5E'],['Marketing','#C98A2C'],
+    ['Comercial','#B23A3A'],['Projetos','#227C9D'],
+  ];
+  return defs.map(([name,color])=>({id: uid(), name, color}));
+}
+function seedData(){
+  const sectors = seedSectors();
+  const byName = n => sectors.find(s=>s.name===n).id;
+  const objectives = [
+    {id: uid(), sectorId: byName('Presidência'), title:'Consolidar o posicionamento estratégico da empresa',
+      owner:'Presidência', battle:'Desenvolvimento Sustentável', startDate:'2026-07-01', endDate:'2026-12-15', cardPos:null,
+      krs:[{id:uid(), title:'Reuniões estratégicas com stakeholders-chave', unit:'un', current:3, target:6,
+        startDate:'2026-07-01', endDate:'2026-12-15',
+        history:[{date:'2026-07-01', value:3, note:'Início do ciclo', author:'Sistema'}]}]},
+    {id: uid(), sectorId: byName('Marketing'), title:'Fortalecer a marca institucional',
+      owner:'Diretoria de Marketing', battle:'Jornada na Cria', startDate:'2026-06-01', endDate:'2026-08-30', cardPos:null,
+      krs:[{id:uid(), title:'Menções em veículos externos', unit:'un', current:8, target:12,
+        startDate:'2026-06-01', endDate:'2026-08-30',
+        history:[{date:'2026-06-01', value:8, note:'Início do ciclo', author:'Sistema'}]}]},
+    {id: uid(), sectorId: byName('Comercial'), title:'Expandir a carteira de clientes ativos',
+      owner:'Diretoria Comercial', battle:'Desenvolvimento Sustentável', startDate:'2026-08-01', endDate:'2026-09-20', cardPos:null,
+      krs:[{id:uid(), title:'Novos contratos fechados', unit:'un', current:2, target:10,
+        startDate:'2026-08-01', endDate:'2026-09-20',
+        history:[{date:'2026-08-01', value:2, note:'Início do ciclo', author:'Sistema'}]}]},
+    {id: uid(), sectorId: byName('Comercial'), title:'Aumentar a taxa de conversão de propostas',
+      owner:'Lorena Rodrigues', battle:'Jornada na Cria', startDate:'2026-08-01', endDate:'2026-09-10', cardPos:null,
+      krs:[{id:uid(), title:'Taxa de conversão de propostas', unit:'%', current:22, target:35,
+        startDate:'2026-08-01', endDate:'2026-09-10',
+        history:[{date:'2026-08-01', value:22, note:'Início do ciclo', author:'Sistema'}]}]},
+    {id: uid(), sectorId: byName('Projetos'), title:'Estruturar novo squad de conteúdo educativo',
+      owner:'Diretoria de Projetos', battle:'Diversidade e Inclusão', startDate:'2026-07-15', endDate:'2026-10-31', cardPos:null,
+      krs:[{id:uid(), title:'Squads estruturados e ativos', unit:'un', current:1, target:2,
+        startDate:'2026-07-15', endDate:'2026-10-31',
+        history:[{date:'2026-07-15', value:1, note:'Início do ciclo', author:'Sistema'}]}]},
+  ];
+  return {sectors, objectives};
+}
+
+/* ---------- Storage (Real-time Firebase + Fallback) ---------- */
+async function storageGet(key, shared=false){
+  if(shared && isFirebaseActive){
+    try{
+      const snap = await firebaseDB.ref(key).once('value');
+      if(snap.exists()) return snap.val();
+      return null;
+    }catch(e){
+      console.warn("Falha ao ler da nuvem. Tentando cache local.", e);
+    }
+  }
+  // Fallback para localStorage
+  try{ return localStorage.getItem(key); }catch(e){ return null; }
+}
+
+async function storageSet(key, value, shared=false){
+  if(shared && isFirebaseActive){
+    try{
+      await firebaseDB.ref(key).set(value);
+      return true;
+    }catch(e){
+      console.warn("Falha ao salvar na nuvem. Salvando no cache local.", e);
+    }
+  }
+  // Fallback para localStorage
+  try{ localStorage.setItem(key, value); return true; }catch(e){ return false; }
+}
+
+async function loadState(){
+  const raw = await storageGet(STORAGE_KEY, true);
+  if(raw){ try{ return JSON.parse(raw); }catch(e){} }
+  const seed = seedData();
+  await saveState(seed);
+  return seed;
+}
+
+async function saveState(next){
+  state = next;
+  const ok = await storageSet(STORAGE_KEY, JSON.stringify(state), true);
+  stateVersionSeen = JSON.stringify(state);
+  flashSync(false);
+  if(!ok) console.error('Não foi possível salvar o estado.');
+}
+
+async function loadUserName(){
+  return (await storageGet(NAME_KEY, false)) || '';
+}
+async function saveUserName(name){ await storageSet(NAME_KEY, name, false); }
+async function loadTheme(){
+  return (await storageGet(THEME_KEY, false)) || 'light';
+}
+async function saveTheme(t){ await storageSet(THEME_KEY, t, false); }
+
+function flashSync(syncing){
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  if(!isFirebaseActive && !syncing) {
+    dot.classList.remove('syncing'); lbl.textContent = 'Modo Local (Não colaborativo)';
+    return;
+  }
+  if(syncing){ dot.classList.add('syncing'); lbl.textContent = 'Sincronizando nuvem…'; }
+  else{ dot.classList.remove('syncing'); lbl.textContent = 'Sincronizado com a equipe'; }
+}
+
+/* ---------- Derived helpers ---------- */
+function krProgress(kr){ if(!kr.target) return 0; return Math.round((kr.current/kr.target)*100); }
+function objProgress(obj){
+  if(!obj.krs.length) return 0;
+  const total = obj.krs.reduce((s,k)=>s+clamp(krProgress(k),0,100),0);
+  return Math.round(total/obj.krs.length);
+}
+function statusFor(pct, endDate){
+  if(isOverdue(pct,endDate)) return {key:'late', label:'Atrasado', color:'var(--crimson)'};
+  if(pct>=75) return {key:'ontrack', label:'No prazo', color:'var(--sage)'};
+  if(pct>=45) return {key:'risk', label:'Em risco', color:'var(--amber)'};
+  return {key:'late', label:'Atrasado', color:'var(--crimson)'};
+}
+
+function getBattleStyle(battle) {
+  if (battle === 'Jornada na Cria') return 'background:#E6EAF8;color:#3A50D5;';
+  if (battle === 'Desenvolvimento Sustentável') return 'background:var(--sage-tint);color:var(--sage);';
+  if (battle === 'Diversidade e Inclusão') return 'background:var(--amber-tint);color:var(--amber);';
+  return 'background:var(--surface-2);color:var(--ink-soft);';
+}
+function sectorById(id){ return state.sectors.find(s=>s.id===id); }
+function findKRParent(krId){
+  for(const o of state.objectives){ const kr = o.krs.find(k=>k.id===krId); if(kr) return {obj:o, kr}; }
+  return null;
+}
+
+/* ---------- Rendering: shell ---------- */
+function render(){
+  if(!state) return;
+  renderSummary();
+  renderAttention();
+  document.querySelectorAll('.main-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.getAttribute('data-main-tab')===mainTab);
+  });
+  document.getElementById('painelView').style.display = mainTab==='painel' ? '' : 'none';
+  document.getElementById('ritmoView').style.display = mainTab==='ritmo' ? '' : 'none';
+  document.getElementById('arvoreView').style.display = mainTab==='arvore' ? '' : 'none';
+  document.getElementById('proximasView').style.display = mainTab==='proximas' ? '' : 'none';
+  
+  if(mainTab==='painel'){ renderTabs(); renderObjectives(); }
+  if(mainTab==='ritmo'){ renderMomentum(); }
+  if(mainTab==='arvore'){ renderArvore(); }
+  if(mainTab==='proximas'){ renderProximas(); }
+  document.querySelectorAll('[data-ai-prompt]').forEach(btn=>btn.addEventListener('click',()=>{ const input=btn.closest('.ai-chat')?.querySelector('[data-chat-input]'); if(input){ input.value=btn.dataset.aiPrompt; input.focus(); } }));
+}
+
+
+function renderSummary(){
+  const objs = state.objectives;
+  let ontrack=0, risk=0, late=0, totalPct=0;
+  objs.forEach(o=>{
+    const p = objProgress(o);
+    totalPct += p;
+    const st = statusFor(p, o.endDate);
+    if(st.key==='ontrack') ontrack++; else if(st.key==='risk') risk++; else late++;
+  });
+  const avg = objs.length ? Math.round(totalPct/objs.length) : 0;
+  const metric = (key, value, label, icon, extraClass, hint) => `
+    <button type="button" class="cell clickable ${extraClass} ${activeStatusFilter===key?'active':''}" data-summary-filter="${key}" aria-pressed="${activeStatusFilter===key}">
+      <div class="metric-top"><div class="num">${value}</div><span class="metric-icon" aria-hidden="true">${icon}</span></div>
+      <div class="lbl">${label}</div>
+      <div class="hint">${hint}</div>
+    </button>`;
+  document.getElementById('summaryStrip').innerHTML =
+    metric('all', `${avg}%`, 'Progresso médio geral', '◔', 'avg', 'Visão completa dos objetivos') +
+    metric('ontrack', ontrack, 'Objetivos no prazo', '✓', 'ontrack', 'Clique para filtrar') +
+    metric('risk', risk, 'Objetivos em risco', '!', 'risk', 'Clique para filtrar') +
+    metric('late', late, 'Objetivos atrasados', '×', 'late', 'Clique para filtrar');
+
+  document.querySelectorAll('[data-summary-filter]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      activeStatusFilter = btn.getAttribute('data-summary-filter');
+      if(activeStatusFilter==='all') activeSectorFilter = activeSectorFilter || 'all';
+      render();
+      document.getElementById('painelView')?.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
+}
+
+function renderAttention(){
+  const box = document.getElementById('attentionCenter');
+  if(!box) return;
+  const now = todayISO();
+  const items = state.objectives.map(o=>{
+    const pct = objProgress(o);
+    const st = statusFor(pct, o.endDate);
+    const overdue = isOverdue(pct, o.endDate);
+    const days = o.endDate ? Math.ceil((new Date(o.endDate+'T00:00:00') - new Date(now+'T00:00:00')) / 86400000) : Infinity;
+    let priority = overdue ? 0 : st.key==='risk' ? 1 : (days >= 0 && days <= 14 && pct < 75 ? 2 : 9);
+    if(priority===9) return null;
+    return {o,pct,st,overdue,days,priority};
+  }).filter(Boolean).sort((a,b)=>a.priority-b.priority || a.days-b.days || a.pct-b.pct).slice(0,4);
+
+  const subtitle = items.length ? `${items.length} ponto${items.length!==1?'s':''} que merece${items.length!==1?'m':''} atenção agora.` : 'Nenhum objetivo exige atenção imediata.';
+  box.innerHTML = `
+    <div class="attention-head">
+      <div><p class="attention-kicker">Centro de atenção</p><h2 id="attentionHeading">Onde agir primeiro</h2><p>${subtitle}</p></div>
+    </div>
+    ${items.length ? `<div class="attention-list">${items.map(({o,pct,st,overdue,days})=>{
+      const sector = sectorById(o.sectorId);
+      const deadline = overdue ? deadlineText(o.endDate) : (days<=14 && o.endDate ? deadlineText(o.endDate) : 'Abaixo do ritmo esperado');
+      return `<button type="button" class="attention-item ${st.key}" data-attention-obj="${o.id}" aria-label="Abrir objetivo ${escapeAttr(o.title)}">
+        <span class="attention-rank" aria-hidden="true">${items.indexOf(items.find(x=>x.o.id===o.id))+1}</span><span class="attention-icon" aria-hidden="true">${overdue?'×':'!'}</span>
+        <span class="attention-copy"><span class="attention-title">${escapeHtml(o.title)}</span><span class="attention-meta">${escapeHtml(sector?.name||'Sem setor')} · ${pct}% concluído</span></span>
+        <span class="attention-status">${escapeHtml(deadline)}</span>
+      </button>`;
+    }).join('')}</div>` : `<div class="attention-empty"><span class="ok-icon" aria-hidden="true">✓</span><span>Os objetivos estão dentro do acompanhamento esperado. Continue com os check-ins.</span></div>`}`;
+
+  box.querySelectorAll('[data-attention-obj]').forEach(btn=>btn.addEventListener('click',()=>{
+    const id=btn.getAttribute('data-attention-obj');
+    activeStatusFilter='all'; activeSectorFilter='all'; openObjectiveIds.add(id); render();
+    requestAnimationFrame(()=>document.querySelector(`.obj-head[data-obj="${CSS.escape(id)}"]`)?.scrollIntoView({behavior:'smooth',block:'center'}));
+  }));
+}
+
+
+function renderMomentum(){
+  const list=document.getElementById('momentumList');
+  const insight=document.getElementById('momentumInsights');
+  const sectors=state.sectors.map(sec=>{
+    const objs=state.objectives.filter(o=>o.sectorId===sec.id);
+    if(!objs.length) return null;
+    const avg=Math.round(objs.reduce((sum,o)=>sum+objProgress(o),0)/objs.length);
+    const risk=objs.filter(o=>statusFor(objProgress(o),o.endDate).key==='risk').length;
+    const late=objs.filter(o=>statusFor(objProgress(o),o.endDate).key==='late').length;
+    const near=objs.filter(o=>o.endDate && daysBetween(todayISO(),o.endDate)>=0 && daysBetween(todayISO(),o.endDate)<=14 && objProgress(o)<75).length;
+    return {sec,objs,avg,risk,late,near};
+  }).filter(Boolean);
+  if(!sectors.length){ list.innerHTML='<div class="momentum-empty">Nenhum objetivo cadastrado ainda.</div>'; if(insight) insight.innerHTML=''; return; }
+  const best=sectors.slice().sort((a,b)=>b.avg-a.avg)[0];
+  const attention=sectors.slice().sort((a,b)=>(b.late*3+b.risk+b.near)-(a.late*3+a.risk+a.near))[0];
+  const overall=Math.round(state.objectives.reduce((sum,o)=>sum+objProgress(o),0)/state.objectives.length);
+  if(insight) insight.innerHTML=`<div class="insight-card"><span class="insight-label">Média geral</span><strong>${overall}%</strong><small>${state.objectives.length} objetivo${state.objectives.length!==1?'s':''}</small></div><div class="insight-card"><span class="insight-label">Maior avanço</span><strong>${escapeHtml(best.sec.name)}</strong><small>${best.avg}% de progresso médio</small></div><div class="insight-card attention"><span class="insight-label">Prioridade</span><strong>${escapeHtml(attention.sec.name)}</strong><small>${attention.late} atrasado${attention.late!==1?'s':''} · ${attention.risk} em risco${attention.risk!==1?'s':''}</small></div>`;
+  list.innerHTML=sectors.map(({sec,avg,risk,late,near,objs})=>{
+    const status=late? 'Atenção imediata' : risk||near ? 'Monitorar' : 'Ritmo saudável';
+    return `<button type="button" class="momentum-row diagnostic-row" data-momentum-sector="${sec.id}" aria-label="Filtrar setor ${escapeAttr(sec.name)}"><div class="momentum-sector-head"><span class="momentum-dot" style="background:${sec.color}"></span><div class="sname" title="${escapeAttr(sec.name)}">${escapeHtml(sec.name)}</div><span class="momentum-status ${late?'late':risk||near?'risk':'good'}">${status}</span></div><div class="momentum-track"><div class="momentum-fill" style="width:${avg}%;background:${sec.color}"></div></div><div class="momentum-meta"><strong>${avg}%</strong><span>${objs.length} obj.</span><span>${risk} risco</span><span>${late} atras.</span>${near?`<span>${near} prazo${near!==1?'s':''} próximo${near!==1?'s':''}</span>`:''}</div></button>`;
+  }).join('');
+  list.querySelectorAll('[data-momentum-sector]').forEach(btn=>btn.addEventListener('click',()=>{activeSectorFilter=btn.dataset.momentumSector;activeStatusFilter='all';mainTab='painel';render();requestAnimationFrame(()=>document.getElementById('painelView')?.scrollIntoView({behavior:'smooth',block:'start'}));}));
+}
+
+/* ---------- Painel: sector tabs + objective cards ---------- */
+function renderTabs(){
+  const tabs = document.getElementById('sectorTabs');
+  let html = `<button class="tab ${activeSectorFilter==='all'?'active':''}" data-filter="all">Todos os setores</button>`;
+  html += state.sectors.map(sec=>`
+    <button class="tab ${activeSectorFilter===sec.id?'active':''}" data-filter="${sec.id}">
+      <span class="dot" style="background:${sec.color}"></span>${escapeHtml(sec.name)}
+    </button>`).join('');
+  html += `<button class="tab add" id="addSectorTab">+ Setor</button>`;
+  html += `<button class="tab remove" id="removeSectorTab">– Excluir setores</button>`;
+  tabs.innerHTML = html;
+  tabs.querySelectorAll('.tab[data-filter]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ activeSectorFilter = btn.getAttribute('data-filter'); render(); });
+  });
+  document.getElementById('addSectorTab').addEventListener('click', openSectorModal);
+  document.getElementById('removeSectorTab').addEventListener('click', openSectorDeleteModal);
+}
+
+function renderObjectives(){
+  const area = document.getElementById('objectivesArea');
+  const existingContext = document.getElementById('statusFilterContext');
+  if(existingContext) existingContext.remove();
+  const sectorsToShow = activeSectorFilter==='all' ? state.sectors : state.sectors.filter(s=>s.id===activeSectorFilter);
+
+  if(activeStatusFilter!=='all'){
+    const labels={ontrack:'No prazo',risk:'Em risco',late:'Atrasados'};
+    const context=document.createElement('div');
+    context.id='statusFilterContext'; context.className='filter-context';
+    context.innerHTML=`<span class="label">Filtro ativo:</span><strong>${labels[activeStatusFilter]||activeStatusFilter}</strong><button type="button" class="filter-clear" id="clearStatusFilter">Limpar filtro</button>`;
+    area.parentNode.insertBefore(context,area);
+    context.querySelector('#clearStatusFilter').addEventListener('click',()=>{activeStatusFilter='all';render();});
+  }
+
+  area.innerHTML = sectorsToShow.map(sec=>{
+    const secObjs = state.objectives.filter(o=>{
+      if(o.sectorId!==sec.id) return false;
+      if(activeStatusFilter==='all') return true;
+      return statusFor(objProgress(o), o.endDate).key===activeStatusFilter;
+    });
+    return `
+      <div class="sector-group">
+        <div class="sector-head">
+          <span class="dot" style="background:${sec.color}"></span>
+          <h3>${escapeHtml(sec.name)}</h3>
+          <span class="count">${secObjs.length} objetivo${secObjs.length!==1?'s':''}</span>
+        </div>
+        ${secObjs.length ? secObjs.map(o=>renderObjectiveCard(o, sec)).join('') : `<div class="sector-empty-note">Nenhum objetivo cadastrado neste setor ainda.</div>`}
+      </div>`;
+  }).join('');
+
+  area.querySelectorAll('.obj-head').forEach(h=>{
+    const toggle = ()=>{
+      const id = h.getAttribute('data-obj');
+      if(openObjectiveIds.has(id)) openObjectiveIds.delete(id); else openObjectiveIds.add(id);
+      renderObjectives();
+    };
+    h.addEventListener('click', toggle);
+    h.addEventListener('keydown', e=>{
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); }
+    });
+  });
+  area.querySelectorAll('[data-action]').forEach(el=>{
+    el.addEventListener('click', (e)=>{ e.stopPropagation(); handleAction(el.getAttribute('data-action'), el); });
+  });
+  area.querySelectorAll('input[data-kr-current]').forEach(inp=>{
+    inp.addEventListener('focus', ()=>{ editLock = true; });
+    inp.addEventListener('blur', ()=>{ editLock = false; });
+  });
+  area.querySelectorAll('[data-chat-input]').forEach(inp=>{
+    inp.addEventListener('focus', ()=>{ editLock = true; });
+    inp.addEventListener('blur', ()=>{ editLock = false; });
+    inp.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter'){ e.preventDefault(); e.stopPropagation(); sendChatMessage(inp.getAttribute('data-chat-input')); }
+    });
+  });
+  openChatKeys.forEach(key=>scrollChatToBottom(key));
+}
+
+function renderObjectiveCard(o, sec){
+  const pct = objProgress(o);
+  const st = statusFor(pct, o.endDate);
+  const isOpen = openObjectiveIds.has(o.id);
+  const overdue = isOverdue(pct, o.endDate);
+  const chatKey = 'obj::'+o.id;
+  const chatOpen = openChatKeys.has(chatKey);
+  const battleStyle = getBattleStyle(o.battle);
+  const totalKRs = o.krs.length;
+  const krStats = o.krs.reduce((acc, kr)=>{
+    const krSt = statusFor(clamp(krProgress(kr),0,100), kr.endDate);
+    acc[krSt.key]++;
+    return acc;
+  }, {ontrack:0,risk:0,late:0});
+  const krSummary = totalKRs
+    ? `<span class="kr-summary-item"><strong>${totalKRs}</strong> KR${totalKRs!==1?'s':''}</span>
+       ${krStats.ontrack ? `<span class="kr-summary-status ontrack">✓ ${krStats.ontrack} no prazo</span>` : ''}
+       ${krStats.risk ? `<span class="kr-summary-status risk">! ${krStats.risk} em risco</span>` : ''}
+       ${krStats.late ? `<span class="kr-summary-status late">× ${krStats.late} atrasado${krStats.late!==1?'s':''}</span>` : ''}`
+    : `<span class="kr-summary-item">Nenhum KR cadastrado</span>`;
+  const actionHint = isOpen ? 'Ocultar KRs' : 'Ver KRs';
+  return `
+    <article class="obj-card ${isOpen?'open':''}" data-objective-card="${o.id}">
+      <div class="obj-head" data-obj="${o.id}" role="button" tabindex="0" aria-expanded="${isOpen}" aria-controls="obj-body-${o.id}">
+        <span class="chev" aria-hidden="true">▸</span>
+        <div class="obj-main">
+          <div class="obj-title-row">
+            <p class="obj-title">${escapeHtml(o.title)}</p>
+            <span class="obj-toggle-hint">${actionHint}</span>
+          </div>
+          <div class="obj-meta">
+            <span class="sector-tag" style="${battleStyle}">⚔️ ${escapeHtml(o.battle||'Sem batalha')}</span>
+            <span>Responsável: ${escapeHtml(o.owner||'—')}</span>
+            <span>${formatDateBR(o.startDate)} → ${formatDateBR(o.endDate)}</span>
+            ${o.endDate ? `<span class="deadline ${overdue?'overdue':''}">${deadlineText(o.endDate)}</span>` : ''}
+          </div>
+          <div class="obj-kr-summary" aria-label="Resumo dos resultados-chave">${krSummary}</div>
+        </div>
+        <div class="obj-score" aria-label="Progresso do objetivo">
+          <div class="obj-progress-track"><div class="obj-progress-fill" style="width:${clamp(pct,0,100)}%;background:${st.color}"></div></div>
+          <div class="obj-progress-num">${pct}%</div>
+        </div>
+        <span class="status-pill ${st.key}"><span class="status-icon" aria-hidden="true">${st.key==='ontrack'?'✓':st.key==='risk'?'!':'×'}</span>${st.label}</span>
+      </div>
+      ${isOpen ? `
+      <div class="obj-body" id="obj-body-${o.id}">
+        <div class="obj-detail-heading">
+          <div><span class="detail-kicker">Resultados-chave</span><strong>Progresso e próximos check-ins</strong></div>
+          <span class="detail-count">${totalKRs} KR${totalKRs!==1?'s':''}</span>
+        </div>
+        ${o.krs.length ? o.krs.map(kr=>renderKRRow(o, kr)).join('') : `<div class="kr-empty">Este objetivo ainda não possui resultados-chave. Adicione o primeiro abaixo.</div>`}
+        <div class="add-kr-row">
+          <div class="add-kr-grid">
+            <input type="text" placeholder="Novo resultado-chave" data-new-kr-title="${o.id}">
+            <input type="number" placeholder="Meta" data-new-kr-target="${o.id}">
+            <input type="text" placeholder="Unidade (%, un, R$)" data-new-kr-unit="${o.id}">
+            <label class="mini-label">Início<input type="date" data-new-kr-start="${o.id}"></label>
+            <label class="mini-label">Fim<input type="date" data-new-kr-end="${o.id}"></label>
+            <button class="btn small secondary" data-action="add-kr" data-obj-id="${o.id}">+ Adicionar KR</button>
+          </div>
+        </div>
+        <div class="obj-actions">
+          <button class="btn small secondary" data-action="edit-obj" data-obj-id="${o.id}">Editar objetivo</button>
+          <button class="btn small secondary" data-action="toggle-chat" data-chat-key="${chatKey}">${chatOpen ? '✕ Fechar consultoria IA' : '💬 Consultoria com IA'}</button>
+          <button class="btn small danger" data-action="delete-obj" data-obj-id="${o.id}">Excluir objetivo</button>
+        </div>
+        ${chatOpen ? renderChatPanel(chatKey) : ''}
+      </div>` : ''}
+    </article>`;
+}
+function renderKRRow(o, kr){
+  const pct = krProgress(kr);
+  const st = statusFor(clamp(pct,0,100), kr.endDate);
+  const spark = renderSparkline(kr);
+  const recentHistory = kr.history.slice(-3).reverse();
+  const hasDates = kr.startDate || kr.endDate;
+  const chatKey = 'kr::'+kr.id;
+  const chatOpen = openChatKeys.has(chatKey);
+  return `
+    <div class="kr-row">
+      <div class="kr-top">
+        <div class="kr-title">${escapeHtml(kr.title)}</div>
+        <div class="kr-value">${formatVal(kr.current, kr.unit)} / ${formatVal(kr.target, kr.unit)} <span class="status-pill ${st.key}"><span class="status-icon" aria-hidden="true">${st.key==='ontrack'?'✓':st.key==='risk'?'!':'×'}</span>${st.label}</span></div>
+      </div>
+      ${hasDates ? `<div class="kr-dates">${formatDateBR(kr.startDate)} → ${formatDateBR(kr.endDate)}${kr.endDate ? ' · '+deadlineText(kr.endDate) : ''}</div>` : ''}
+      <div class="kr-track"><div class="kr-fill" style="width:${clamp(pct,0,100)}%;background:${st.color}"></div></div>
+      ${spark}
+      <div class="kr-controls">
+        <input type="number" data-kr-current="${kr.id}" data-obj-id="${o.id}" value="${kr.current}" step="any">
+        <input type="text" placeholder="Comentário do check-in (opcional)" data-kr-note="${kr.id}">
+        <button class="btn small secondary" data-action="update-kr" data-obj-id="${o.id}" data-kr-id="${kr.id}">Atualizar</button>
+        <button class="btn ghost small" data-action="delete-kr" data-obj-id="${o.id}" data-kr-id="${kr.id}">Remover</button>
+        <button class="btn ghost small kr-ai-toggle" data-action="toggle-chat" data-chat-key="${chatKey}">${chatOpen ? '✕ Fechar IA' : '💬 Dicas de IA'}</button>
+      </div>
+      ${recentHistory.length ? `<div class="checkin-log">${recentHistory.map(h=>`<div class="checkin-item"><b>${escapeHtml(h.author||'—')}</b> · ${h.date} — ${formatVal(h.value,kr.unit)}${h.note?': '+escapeHtml(h.note):''}</div>`).join('')}</div>` : ''}
+      ${chatOpen ? renderChatPanel(chatKey) : ''}
+    </div>`;
+}
+
+function renderSparkline(kr){
+  if(kr.history.length<2) return '';
+  const w=220,h=32,pad=3;
+  const vals = kr.history.map(h=>h.value);
+  const max = Math.max(...vals, kr.target, 1);
+  const min = Math.min(...vals, 0);
+  const range = (max-min)||1;
+  const step = (w-pad*2)/(vals.length-1);
+  const pts = vals.map((v,i)=>{
+    const x = pad + i*step;
+    const y = h - pad - ((v-min)/range)*(h-pad*2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Histórico do resultado-chave">
+    <polyline points="${pts}" fill="none" style="stroke:var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+function formatVal(v, unit){
+  const n = Number(v);
+  const rounded = Math.round(n*100)/100;
+  if(unit==='%') return rounded + '%';
+  if((unit||'').toUpperCase()==='R$') return 'R$ ' + rounded;
+  return rounded + (unit ? ' '+unit : '');
+}
+function escapeHtml(str){
+  return String(str||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(str){ return escapeHtml(str); }
+
+/* ---------- AI chat ---------- */
+function renderChatPanel(key){
+  const msgs = chatMessages[key] || [];
+  const log = msgs.length
+    ? msgs.map(m=>`<div class="ai-msg ${m.role} ${m.pending?'pending':''}">${escapeHtml(m.content)}</div>`).join('')
+    : `<div class="ai-chat-empty">Pergunte sobre estratégias, metodologias, exemplos ou práticas para alcançar esta meta.</div>`;
+  const aiReady = !!localAIEngine;
+  const aiLabel = aiReady ? 'IA local pronta — sem API ou créditos' : 'IA local — o modelo será carregado no primeiro uso';
+  return `
+    <div class="ai-chat">
+      <div class="ai-quick-prompts" aria-label="Perguntas rápidas">
+        <button type="button" class="ai-prompt" data-ai-prompt="Diagnostique este OKR em 3 pontos e indique a próxima ação mais importante.">Diagnóstico rápido</button>
+        <button type="button" class="ai-prompt" data-ai-prompt="Quais são os principais riscos deste OKR e como podemos mitigá-los nesta semana?">Riscos</button>
+        <button type="button" class="ai-prompt" data-ai-prompt="Sugira um plano de ação enxuto para acelerar este OKR sem inventar metas ou números.">Plano de ação</button>
+      </div>
+      <div class="ai-local-status" id="${aiStatusId(key)}">
+        <span class="ai-local-dot ${aiReady?'ready':''}"></span>
+        <span class="ai-local-label">${escapeHtml(aiLabel)}</span>
+        <div class="ai-local-progress"><div class="ai-local-progress-fill" style="width:${aiReady?'100':'0'}%"></div></div>
+      </div>
+      <div class="ai-chat-log" id="chatLog-${key}">${log}</div>
+      <div class="ai-chat-input-row">
+        <input type="text" data-chat-input="${key}" placeholder="Pergunte à IA sobre estratégias para essa meta...">
+        <button class="btn small" data-action="ai-send" data-chat-key="${key}">Enviar</button>
+      </div>
+    </div>`;
+}
+function scrollChatToBottom(key){
+  const log = document.getElementById('chatLog-'+key);
+  if(log) log.scrollTop = log.scrollHeight;
+}
+function buildSystemPrompt(kind, id){
+  let obj, kr;
+  if(kind==='obj'){ obj = state.objectives.find(o=>o.id===id); }
+  else { const found = findKRParent(id); if(found){ obj = found.obj; kr = found.kr; } }
+  if(!obj) return 'Você é uma consultora especialista em OKRs. Responda em português do Brasil.';
+
+  const sec = sectorById(obj.sectorId);
+  const pct = objProgress(obj);
+  const signals = obj.krs.map(k=>({k,p:clamp(krProgress(k),0,100),st:statusFor(clamp(krProgress(k),0,100),k.endDate)}));
+  const weakKRs = signals.filter(x=>x.p<45).map(x=>x.k.title).slice(0,3);
+  const riskKRs = signals.filter(x=>x.st.key==='risk'||x.st.key==='late').map(x=>x.k.title).slice(0,3);
+  const st = statusFor(pct, obj.endDate);
+  let ctx = `Você é o Consultor Estratégico de OKRs da Cria UFMG (Empresa Júnior de Comunicação Social).
+Sua função é analisar os Objetivos e Resultados-Chave (KRs) e ajudar a equipe a criar planos de ação alinhados ao Planejamento Estratégico.
+Responda sempre em português do Brasil. Seja objetivo, analítico e traga propostas práticas para a realidade do Movimento Empresa Júnior (MEJ).
+
+DIRETRIZES DA CRIA UFMG:
+- Missão: Formar lideranças transformadoras por meio de vivência empresarial, gerando impacto no MEJ, mercado e comunicação.
+- Visão 2026: Ser EJ de excelência (desenvolvimento de pessoas, amadurecimento institucional, eficiência e resultados).
+- 3 Batalhas Estratégicas:
+  1) Jornada na Cria: Permanência > 1 ano, evolução (Operacional > Tático > Estratégico/Instâncias) e engajamento na Rede.
+  2) Desenvolvimento Sustentável: Faturamento, CSAT, Projetos de Impacto (TipCom) e excelência a longo prazo.
+  3) Diversidade e Inclusão: Atração, retenção e desenvolvimento de membros vulnerabilizados e sub-representados.
+
+REGRAS DA RESPOSTA:
+Não invente números ou prazos. Ao sugerir ações, conecte-as com as Batalhas Estratégicas acima.
+Apresente diagnóstico + prioridade + próxima ação prática.
+Respostas normalmente entre 100 e 250 palavras.
+
+Contexto do objetivo:
+- Setor: ${sec ? sec.name : '—'}
+- Objetivo: ${obj.title}
+- Responsável: ${obj.owner || '—'}
+- Período: ${formatDateBR(obj.startDate)} até ${formatDateBR(obj.endDate)}
+- Progresso geral: ${pct}% (status: ${st.label})
+- Sinais de atenção: ${weakKRs.length ? 'KRs abaixo de 45%: '+weakKRs.join('; ') : 'nenhum KR abaixo de 45%'}; ${riskKRs.length ? 'KRs em risco/atrasados: '+riskKRs.join('; ') : 'nenhum KR em risco/atrasado'}
+- Resultados-chave:
+${obj.krs.map(k=>`  • ${k.title}: ${formatVal(k.current,k.unit)} de ${formatVal(k.target,k.unit)} (${clamp(krProgress(k),0,100)}%), período ${formatDateBR(k.startDate)} até ${formatDateBR(k.endDate)}; histórico: ${k.history.map(h=>`${h.date}=${formatVal(h.value,k.unit)}${h.note?' ('+h.note+')':''}`).join(' | ') || 'sem histórico'}`).join('\n') || '  • nenhum cadastrado ainda'}
+
+Panorama de todos os OKRs do painel:
+${buildGlobalOKRContext()}`;
+
+  if(kr){
+    const kpct = krProgress(kr);
+    ctx += `\n\nFoco específico desta conversa — KR:
+- Título: ${kr.title}
+- Valor atual: ${formatVal(kr.current, kr.unit)}
+- Meta: ${formatVal(kr.target, kr.unit)}
+- Progresso: ${kpct}%
+- Período: ${formatDateBR(kr.startDate)} até ${formatDateBR(kr.endDate)}
+- Histórico completo: ${kr.history.map(h=>`${h.date}: ${formatVal(h.value,kr.unit)}${h.note?' — '+h.note:''}${h.author?' — por '+h.author:''}`).join(' | ') || 'sem histórico'}
+Concentre a análise neste KR, mas relacione-o ao objetivo quando necessário.`;
+  }
+  return ctx;
+}
+
+async function callLocalAI(systemPrompt, messages, key, onChunk) {
+  await initLocalAI((progress) => updateAIStatus(key, progress));
+
+  const recentMessages = messages.slice(-6);
+
+  const request = {
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...recentMessages
+    ],
+    temperature: 0.1,
+    top_p: 0.8,
+    max_tokens: 300,
+    stream: Boolean(onChunk)
+  };
+
+  const response = await localAIEngine.chat.completions.create(request);
+
+  if (!onChunk) {
+    return response.choices?.[0]?.message?.content?.trim() || 'Não consegui gerar uma resposta.';
+  }
+
+  let fullText = '';
+  for await (const chunk of response) {
+    const piece = chunk.choices?.[0]?.delta?.content || '';
+    if (piece) {
+      fullText += piece;
+      onChunk(piece, fullText);
+    }
+  }
+
+  return fullText.trim() || 'Não consegui gerar uma resposta.';
+}
+
+function toggleChat(key){
+  if(openChatKeys.has(key)){
+    openChatKeys.delete(key);
+  } else {
+    openChatKeys.add(key);
+    if(!chatMessages[key]){ chatMessages[key] = []; loadChatHistory(key); }
+  }
+  render();
+}
+async function loadChatHistory(key){
+  try{
+    const raw = await storageGet('okr-chat-'+key, false);
+    if(raw) chatMessages[key] = JSON.parse(raw);
+  }catch(e){}
+  if(openChatKeys.has(key)) render();
+}
+async function saveChatHistory(key){
+  try{ await storageSet('okr-chat-'+key, JSON.stringify(chatMessages[key]), false); }catch(e){}
+}
+async function sendChatMessage(key){
+  const input = document.querySelector(`[data-chat-input="${key}"]`);
+  if(!input) return;
+  const text = input.value.trim();
+  if(!text) return;
+  const [kind, id] = key.split('::');
+  if(!chatMessages[key]) chatMessages[key] = [];
+  chatMessages[key].push({role:'user', content:text});
+  input.value='';
+  chatMessages[key].push({role:'assistant', content:'Pensando…', pending:true});
+  editLock = false;
+  render();
+  scrollChatToBottom(key);
+
+  const systemPrompt = buildSystemPrompt(kind, id);
+  const apiMessages = chatMessages[key].filter(m=>!m.pending).map(m=>({role:m.role, content:m.content}));
+  let replyText = '';
+  try{
+    replyText = await callLocalAI(systemPrompt, apiMessages, key);
+  }catch(e){
+    console.error('IA local:', e);
+    replyText = '';
+    const reason = e && e.message ? e.message : 'erro desconhecido';
+    if(/WebGPU/i.test(reason)){
+      replyText = 'A IA local não pôde ser iniciada porque este navegador não oferece WebGPU. Use uma versão recente do Chrome ou Edge em um computador compatível. Os dados do painel continuam funcionando normalmente.';
+    }else{
+      replyText = 'Não foi possível iniciar a IA local. Se for a primeira utilização, aguarde o download do modelo e tente novamente. Erro: '+reason;
+    }
+    updateAIStatus(key, 'IA local indisponível', 'error', 0);
+  }
+  chatMessages[key] = chatMessages[key].filter(m=>!m.pending);
+  chatMessages[key].push({role:'assistant', content: replyText || 'Não foi possível conectar à IA agora. Tente novamente em instantes.'});
+  await saveChatHistory(key);
+  render();
+  scrollChatToBottom(key);
+}
+
+/* ---------- Datas Próximas ---------- */
+function renderProximas(){
+  const list=document.getElementById('proximasList');
+  const summary=document.getElementById('proximasSummary');
+  const objs=state.objectives.filter(o=>o.endDate).slice().sort((a,b)=>a.endDate.localeCompare(b.endDate));
+  const today=todayISO();
+  const overdue=objs.filter(o=>isOverdue(objProgress(o),o.endDate)).length;
+  const next7=objs.filter(o=>{const d=daysBetween(today,o.endDate);return d>=0&&d<=7&&objProgress(o)<100;}).length;
+  if(summary) summary.innerHTML=`<div><strong>${overdue}</strong><span>atrasados</span></div><div><strong>${next7}</strong><span>vencem em até 7 dias</span></div><div><strong>${objs.filter(o=>objProgress(o)>=75).length}</strong><span>em ritmo saudável</span></div>`;
+  if(!objs.length){list.innerHTML='<div class="empty"><h3>Nada por aqui ainda</h3><p>Assim que os objetivos tiverem data de término, eles aparecerão aqui ordenados pelo prazo.</p></div>';return;}
+  list.innerHTML=objs.map(o=>{const sec=sectorById(o.sectorId);const pct=objProgress(o);const st=statusFor(pct,o.endDate);const overdueObj=isOverdue(pct,o.endDate);return `<button type="button" class="upcoming-row ${overdueObj?'overdue':''}" data-upcoming-obj="${o.id}"><div class="upcoming-main"><div class="upcoming-title">${escapeHtml(o.title)}</div><div class="upcoming-meta"><span class="sector-tag" style="background:${sec?sec.color:'#999'}22;color:${sec?sec.color:'#666'}">${escapeHtml(sec?sec.name:'—')}</span><span>${formatDateBR(o.startDate)} → ${formatDateBR(o.endDate)}</span><span>Responsável: ${escapeHtml(o.owner||'—')}</span></div></div><div class="upcoming-progress"><div class="obj-progress-track" style="width:100%;"><div class="obj-progress-fill" style="width:${clamp(pct,0,100)}%;background:${st.color}"></div></div><span>${pct}% concluído · ${st.label}</span></div><div class="upcoming-deadline ${overdueObj?'text-crimson':''}">${deadlineText(o.endDate)} <span aria-hidden="true">→</span></div></button>`;}).join('');
+  list.querySelectorAll('[data-upcoming-obj]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.upcomingObj;mainTab='painel';activeSectorFilter='all';activeStatusFilter='all';openObjectiveIds.add(id);render();requestAnimationFrame(()=>document.querySelector(`.obj-head[data-obj="${CSS.escape(id)}"]`)?.scrollIntoView({behavior:'smooth',block:'center'}));}));
+}
+
+/* ---------- Árvore ---------- */
+function ensureCardPositions(){
+  let changed = false;
+  state.objectives.forEach((o,i)=>{
+    if(!o.cardPos){ const col=i%5, row=Math.floor(i/5); o.cardPos = {x:20+col*300, y:20+row*260}; changed = true; }
+  });
+  return changed;
+}
+async function renderArvore(){
+  if(ensureCardPositions()){ await saveState(state); }
+  const canvas = document.getElementById('treeCanvas');
+  if(!state.objectives.length){
+    canvas.innerHTML = `<div class="empty" style="position:absolute;left:20px;top:20px;right:20px;"><h3>Nenhum OKR cadastrado ainda</h3><p>Crie um objetivo para vê-lo aqui como card.</p></div>`;
+    return;
+  }
+  const query=(document.getElementById('treeSearchInput')?.value||'').trim().toLowerCase();
+  const focusOnly=canvas.dataset.focusOnly==='true';
+  canvas.innerHTML = state.objectives.map(o=>renderTreeCard(o, sectorById(o.sectorId), query, focusOnly)).join('');
+  state.objectives.forEach(o=>{ const el=canvas.querySelector(`[data-obj-id="${o.id}"]`); if(el) enableDrag(el,o); });
+  canvas.querySelectorAll('[data-tree-open]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const id=el.dataset.treeOpen;activeSectorFilter='all';activeStatusFilter='all';openObjectiveIds.add(id);mainTab='painel';render();requestAnimationFrame(()=>document.querySelector(`.obj-head[data-obj="${CSS.escape(id)}"]`)?.scrollIntoView({behavior:'smooth',block:'center'}));}));
+}
+function renderTreeCard(obj, sec, query="", focusOnly=false){
+  const pct = objProgress(obj);
+  const st = statusFor(pct, obj.endDate);
+  const overdue = isOverdue(pct, obj.endDate);
+  const pos = obj.cardPos || {x:20,y:20};
+  const hay=(obj.title+' '+(obj.owner||'')+' '+(sec?sec.name:'')).toLowerCase();
+  const matches=!query || hay.includes(query);
+  const days = obj.endDate ? daysBetween(todayISO(), obj.endDate) : Infinity;
+  const attention=st.key!=='ontrack' || overdue || (days>=0 && days<=14);
+  const hidden=(query && !matches) || (focusOnly && !attention);
+  const owner = obj.owner || 'Sem responsável';
+  return `
+    <article class="tree-card ${hidden?'tree-card-muted':''}" style="left:${pos.x}px; top:${pos.y}px; border-top-color:${sec?sec.color:'var(--teal)'}" data-obj-id="${obj.id}" aria-label="Objetivo ${escapeAttr(obj.title)}">
+      <div class="tree-card-head">
+        <span class="sector-tag" style="background:${sec?sec.color:'#64748b'}22;color:${sec?sec.color:'var(--ink-soft)'}">${escapeHtml(sec?sec.name:'Sem setor')}</span>
+        <span class="status-pill ${st.key}"><span class="status-icon" aria-hidden="true">${st.key==='ontrack'?'✓':st.key==='risk'?'!':'×'}</span>${st.label}</span>
+      </div>
+      <button type="button" class="tree-card-title tree-open" data-tree-open="${obj.id}" aria-label="Abrir objetivo ${escapeAttr(obj.title)}">${escapeHtml(obj.title)}</button>
+      <div class="tree-owner"><span>Responsável</span><strong>${escapeHtml(owner)}</strong></div>
+      <div class="tree-dates">${formatDateBR(obj.startDate)} → ${formatDateBR(obj.endDate)}</div>
+      ${obj.endDate ? `<div class="tree-deadline ${overdue?'overdue':''}">${deadlineText(obj.endDate)}</div>` : ''}
+      <div class="tree-progress-line"><div class="obj-progress-track"><div class="obj-progress-fill" style="width:${clamp(pct,0,100)}%;background:${st.color}"></div></div><strong>${pct}%</strong></div>
+      <div class="tree-krs">
+        <div class="tree-section-label">Resultados-chave · ${obj.krs.length}</div>
+        ${obj.krs.length ? obj.krs.map(kr=>{
+          const kpct = clamp(krProgress(kr),0,100);
+          return `<div class="tree-kr">
+            <div class="tree-kr-title" title="${escapeAttr(kr.title)}">${escapeHtml(kr.title)}</div>
+            <div class="tree-kr-meta"><span>${kpct}%</span><span>${escapeHtml(String(kr.current))}/${escapeHtml(String(kr.target))}${kr.unit?' '+escapeHtml(kr.unit):''}</span></div>
+            <div class="kr-track"><div class="kr-fill" style="width:${kpct}%;background:var(--teal)"></div></div>
+          </div>`;
+        }).join('') : `<div class="tree-kr-empty">Nenhum resultado-chave cadastrado.</div>`}
+      </div>
+    </article>`;
+}
+
+function enableDrag(cardEl, obj){
+  cardEl.addEventListener('pointerdown', function(e){
+    if(e.button!==0 && e.pointerType==='mouse') return;
+    if(e.target.closest('button,input,select,textarea,a')) return;
+    e.preventDefault();
+    const canvas=document.getElementById('treeCanvas');
+    const startLeft=cardEl.offsetLeft, startTop=cardEl.offsetTop;
+    const startX=e.clientX, startY=e.clientY;
+    editLock=true; cardEl.classList.add('dragging');
+    try{ cardEl.setPointerCapture(e.pointerId); }catch(err){}
+    function onMove(ev){
+      const dx=ev.clientX-startX, dy=ev.clientY-startY;
+      const maxX=Math.max(0,canvas.scrollWidth-cardEl.offsetWidth);
+      const maxY=Math.max(0,canvas.scrollHeight-cardEl.offsetHeight);
+      cardEl.style.left=clamp(startLeft+dx,0,maxX)+'px';
+      cardEl.style.top=clamp(startTop+dy,0,maxY)+'px';
+    }
+    async function onUp(){
+      cardEl.removeEventListener('pointermove',onMove);
+      cardEl.removeEventListener('pointerup',onUp);
+      cardEl.classList.remove('dragging'); editLock=false;
+      obj.cardPos={x:parseInt(cardEl.style.left,10)||0,y:parseInt(cardEl.style.top,10)||0};
+      flashSync(true); await saveState(state);
+    }
+    cardEl.addEventListener('pointermove',onMove);
+    cardEl.addEventListener('pointerup',onUp,{once:true});
+  });
+}
+
+async function autoArrange(){
+  state.objectives.forEach((o,i)=>{ const col=i%5, row=Math.floor(i/5); o.cardPos = {x:20+col*300, y:20+row*260}; });
+  flashSync(true);
+  await saveState(state);
+  renderArvore();
+}
+
+/* ---------- Actions ---------- */
+async function handleAction(action, el){
+  const objId = el.getAttribute('data-obj-id');
+  if(action==='update-kr'){
+    const krId = el.getAttribute('data-kr-id');
+    const input = document.querySelector(`input[data-kr-current="${krId}"]`);
+    const noteInput = document.querySelector(`input[data-kr-note="${krId}"]`);
+    const val = parseFloat(input.value);
+    if(isNaN(val)) return;
+    const obj = state.objectives.find(o=>o.id===objId);
+    const kr = obj.krs.find(k=>k.id===krId);
+    kr.current = val;
+    kr.history.push({date: todayISO(), value: val, note: noteInput.value.trim(), author: userName || 'Convidado'});
+    editLock = false;
+    flashSync(true);
+    await saveState(state);
+    render();
+  }
+  else if(action==='delete-kr'){
+    const krId = el.getAttribute('data-kr-id');
+    if(!(await askConfirm('Remover este resultado-chave?'))) return;
+    const obj = state.objectives.find(o=>o.id===objId);
+    obj.krs = obj.krs.filter(k=>k.id!==krId);
+    flashSync(true);
+    await saveState(state);
+    render();
+  }
+  else if(action==='add-kr'){
+    const titleInput = document.querySelector(`input[data-new-kr-title="${objId}"]`);
+    const targetInput = document.querySelector(`input[data-new-kr-target="${objId}"]`);
+    const unitInput = document.querySelector(`input[data-new-kr-unit="${objId}"]`);
+    const startInput = document.querySelector(`input[data-new-kr-start="${objId}"]`);
+    const endInput = document.querySelector(`input[data-new-kr-end="${objId}"]`);
+    const title = titleInput.value.trim();
+    const target = parseFloat(targetInput.value);
+    if(!title || isNaN(target)){ showToast('Preencha o título e a meta do resultado-chave.', 'error'); return; }
+    const obj = state.objectives.find(o=>o.id===objId);
+    obj.krs.push({
+      id: uid(), title, unit: unitInput.value.trim(), current:0, target,
+      startDate: startInput.value || '', endDate: endInput.value || '',
+      history:[{date: todayISO(), value:0, note:'KR criado', author: userName || 'Convidado'}]
+    });
+    flashSync(true);
+    await saveState(state);
+    render();
+  }
+  else if(action==='delete-obj'){
+    if(!(await askConfirm('Excluir este objetivo e todos os seus resultados-chave?'))) return;
+    state.objectives = state.objectives.filter(o=>o.id!==objId);
+    flashSync(true);
+    await saveState(state);
+    render();
+  }
+  else if(action==='edit-obj'){ openObjModal(objId); }
+  else if(action==='toggle-chat'){ toggleChat(el.getAttribute('data-chat-key')); }
+  else if(action==='ai-send'){ sendChatMessage(el.getAttribute('data-chat-key')); }
+}
+
+/* ---------- Modal: New / Edit Objective ---------- */
+function openObjModal(editId){
+  editingObjId = editId || null;
+  const sel = document.getElementById('objSectorSelect');
+  sel.innerHTML = state.sectors.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+  if(editingObjId){
+    const obj = state.objectives.find(o=>o.id===editingObjId);
+    document.getElementById('objModalTitle').textContent = 'Editar objetivo';
+    document.getElementById('objSaveBtn').textContent = 'Salvar alterações';
+    document.getElementById('objTitleInput').value = obj.title;
+    sel.value = obj.sectorId;
+    document.getElementById('objOwnerInput').value = obj.owner || '';
+    document.getElementById('objBattleSelect').value = obj.battle || 'Jornada na Cria';
+    document.getElementById('objStartInput').value = obj.startDate || '';
+    document.getElementById('objEndInput').value = obj.endDate || '';
+  } else {
+    document.getElementById('objModalTitle').textContent = 'Novo objetivo';
+    document.getElementById('objSaveBtn').textContent = 'Criar objetivo';
+    document.getElementById('objTitleInput').value='';
+    document.getElementById('objOwnerInput').value='';
+    document.getElementById('objBattleSelect').value='Jornada na Cria';
+    document.getElementById('objStartInput').value='';
+    document.getElementById('objEndInput').value='';
+  }
+  editLock = true;
+  document.getElementById('objModalOverlay').classList.add('show');
+}
+function closeObjModal(){ editLock = false; editingObjId = null; document.getElementById('objModalOverlay').classList.remove('show'); }
+async function saveObjective(){
+  const title = document.getElementById('objTitleInput').value.trim();
+  const sectorId = document.getElementById('objSectorSelect').value;
+  const owner = document.getElementById('objOwnerInput').value.trim();
+  const battle = document.getElementById('objBattleSelect').value;
+  const startDate = document.getElementById('objStartInput').value;
+  const endDate = document.getElementById('objEndInput').value;
+  if(!title || !sectorId){ showToast('Informe ao menos o título do objetivo e o setor.', 'error'); return; }
+  if(startDate && endDate && endDate < startDate){ showToast('A data de término deve ser depois da data de início.', 'error'); return; }
+  if(editingObjId){
+    const obj = state.objectives.find(o=>o.id===editingObjId);
+    obj.title = title; obj.sectorId = sectorId; obj.owner = owner; obj.battle = battle; obj.startDate = startDate; obj.endDate = endDate;
+  } else {
+    const newObj = {id: uid(), sectorId, title, owner, battle, startDate, endDate, cardPos:null, krs: []};
+    state.objectives.push(newObj);
+    openObjectiveIds.add(newObj.id);
+  }
+  closeObjModal();
+  flashSync(true);
+  await saveState(state);
+  render();
+}
+
+/* ---------- Modal: New Sector ---------- */
+let pickedColor = SECTOR_COLORS[0];
+function openSectorModal(){
+  document.getElementById('sectorNameInput').value='';
+  pickedColor = SECTOR_COLORS[state.sectors.length % SECTOR_COLORS.length];
+  const picks = document.getElementById('colorPicks');
+  picks.innerHTML = SECTOR_COLORS.map(c=>`<span class="color-pick ${c===pickedColor?'selected':''}" style="background:${c}" data-color="${c}"></span>`).join('');
+  picks.querySelectorAll('.color-pick').forEach(p=>{
+    p.addEventListener('click', ()=>{
+      pickedColor = p.getAttribute('data-color');
+      picks.querySelectorAll('.color-pick').forEach(x=>x.classList.remove('selected'));
+      p.classList.add('selected');
+    });
+  });
+  editLock = true;
+  document.getElementById('sectorModalOverlay').classList.add('show');
+}
+function closeSectorModal(){ editLock = false; document.getElementById('sectorModalOverlay').classList.remove('show'); }
+async function saveNewSector(){
+  const name = document.getElementById('sectorNameInput').value.trim();
+  if(!name){ showToast('Informe o nome do setor.', 'error'); return; }
+  state.sectors.push({id: uid(), name, color: pickedColor});
+  closeSectorModal();
+  flashSync(true);
+  await saveState(state);
+  render();
+}
+
+/* ---------- Modal: Delete Sector ---------- */
+function openSectorDeleteModal(){
+  renderSectorDeleteList();
+  editLock = true;
+  document.getElementById('sectorDeleteModalOverlay').classList.add('show');
+}
+function closeSectorDeleteModal(){ editLock = false; document.getElementById('sectorDeleteModalOverlay').classList.remove('show'); }
+function renderSectorDeleteList(){
+  const list = document.getElementById('sectorDeleteList');
+  if(!state.sectors.length){
+    list.innerHTML = `<div style="font-size:13px;color:var(--ink-soft);padding:10px 0;">Nenhum setor cadastrado.</div>`;
+    return;
+  }
+  list.innerHTML = state.sectors.map(s=>{
+    const count = state.objectives.filter(o=>o.sectorId===s.id).length;
+    return `<div class="sector-del-row">
+      <span class="dot" style="background:${s.color}"></span>
+      <span class="sname">${escapeHtml(s.name)}</span>
+      <span class="scount">${count} objetivo${count!==1?'s':''}</span>
+      <button class="btn danger small" data-del-sector="${s.id}">Excluir</button>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('[data-del-sector]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.getAttribute('data-del-sector');
+      const sec = sectorById(id);
+      if(!sec) return;
+      const count = state.objectives.filter(o=>o.sectorId===id).length;
+      const ok = await askConfirm(`Excluir o setor "${sec.name}"${count?` e seus ${count} objetivo(s)`:''}? Essa ação não pode ser desfeita.`);
+      if(!ok) return;
+      state.sectors = state.sectors.filter(s=>s.id!==id);
+      state.objectives = state.objectives.filter(o=>o.sectorId!==id);
+      if(activeSectorFilter===id) activeSectorFilter='all';
+      flashSync(true);
+      await saveState(state);
+      showToast(`Setor "${sec.name}" excluído.`);
+      renderSectorDeleteList();
+      render();
+    });
+  });
+}
+
+/* ---------- Theme ---------- */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeToggleBtn').textContent = t==='dark' ? '☀️ Modo claro' : '🌙 Modo escuro';
+}
+async function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current==='dark' ? 'light' : 'dark';
+  applyTheme(next);
+  await saveTheme(next);
+}
+
+/* ---------- Polling for live sync ---------- */
+async function pollForUpdates(){
+  if(editLock) return;
+  try{
+    const raw = await storageGet(STORAGE_KEY, true);
+    if(raw && raw !== stateVersionSeen){
+      stateVersionSeen = raw;
+      state = JSON.parse(raw);
+      render();
+    }
+  }catch(e){}
+}
+
+/* ---------- Init ---------- */
+async function init(){
+  state = await loadState();
+  stateVersionSeen = JSON.stringify(state);
+
+  const theme = await loadTheme();
+  applyTheme(theme);
+  document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+
+  userName = await loadUserName();
+  document.getElementById('userNameInput').value = userName;
+  document.getElementById('userNameInput').addEventListener('focus', ()=>{ editLock = true; });
+  document.getElementById('userNameInput').addEventListener('blur', async (e)=>{
+    editLock = false;
+    userName = e.target.value.trim() || 'Convidado';
+    await saveUserName(userName);
+  });
+
+  document.querySelectorAll('.main-tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ mainTab = btn.getAttribute('data-main-tab'); render(); });
+  });
+
+  document.getElementById('newObjBtn').addEventListener('click', ()=>openObjModal(null));
+  document.getElementById('objCancelBtn').addEventListener('click', closeObjModal);
+  document.getElementById('objSaveBtn').addEventListener('click', saveObjective);
+  document.getElementById('sectorCancelBtn').addEventListener('click', closeSectorModal);
+  document.getElementById('sectorSaveBtn').addEventListener('click', saveNewSector);
+  document.getElementById('sectorDeleteCloseBtn').addEventListener('click', closeSectorDeleteModal);
+  document.getElementById('autoArrangeBtn').addEventListener('click', autoArrange);
+  document.getElementById('treeFocusBtn').addEventListener('click', ()=>{ const c=document.getElementById('treeCanvas'); c.dataset.focusOnly=c.dataset.focusOnly==='true'?'false':'true'; document.getElementById('treeFocusBtn').classList.toggle('active',c.dataset.focusOnly==='true'); renderArvore(); });
+  document.getElementById('treeSearchInput').addEventListener('input', ()=>renderArvore());
+  document.getElementById('confirmOkBtn').addEventListener('click', ()=>resolveConfirm(true));
+  document.getElementById('confirmCancelBtn').addEventListener('click', ()=>resolveConfirm(false));
+
+  [document.getElementById('objModalOverlay'), document.getElementById('sectorModalOverlay'), document.getElementById('sectorDeleteModalOverlay')].forEach(ov=>{
+    ov.addEventListener('click', (e)=>{ if(e.target===ov){ ov.classList.remove('show'); editLock=false; editingObjId=null; } });
+  });
+  document.getElementById('confirmModalOverlay').addEventListener('click', (e)=>{
+    if(e.target===e.currentTarget) resolveConfirm(false);
+  });
+
+  render();
+  requestAnimationFrame(()=>{
+    document.body.classList.add('app-ready');
+    const loader=document.getElementById('initialLoading');
+    if(loader) loader.setAttribute('aria-hidden','true');
+  });
+    if(isFirebaseActive) {
+    // Sincronização em tempo real (Socket)
+    firebaseDB.ref(STORAGE_KEY).on('value', (snapshot) => {
+      if(editLock) return; // Não atualiza a tela se o usuário estiver digitando
+      const raw = snapshot.val();
+      if(raw && raw !== stateVersionSeen){
+        stateVersionSeen = raw;
+        state = JSON.parse(raw);
+        render();
+      }
+    });
+  } else {
+    // Fallback: modo offline
+    setInterval(pollForUpdates, 4000);
+  }
+}
+
+init();
+
+
+// ===== CONSULTOR GLOBAL DE OKRs =====
+function initGlobalOKRConsultant() {
+  const openBtn = document.getElementById('okrGlobalConsultantBtn');
+  const overlay = document.getElementById('okrGlobalConsultantOverlay');
+  const closeBtn = document.getElementById('okrGlobalConsultantClose');
+  const form = document.getElementById('okrGlobalConsultantForm');
+  const input = document.getElementById('okrGlobalConsultantInput');
+  const sendBtn = document.getElementById('okrGlobalConsultantSend');
+  const messagesEl = document.getElementById('okrGlobalConsultantMessages');
+  const statusEl = document.getElementById('okrGlobalConsultantStatus');
+
+  if (!openBtn || !overlay || !form) return;
+
+  const history = [];
+
+  function addMessage(role, text) {
+    const el = document.createElement('div');
+    el.className = 'okr-global-msg ' + (role === 'user' ? 'user' : 'assistant');
+    el.textContent = text;
+    messagesEl.appendChild(el);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function setStatus(text) {
+    statusEl.textContent = text || '';
+  }
+
+  function openConsultant() {
+    overlay.classList.add('open');
+    input.focus();
+  }
+
+  function closeConsultant() {
+    overlay.classList.remove('open');
+  }
+
+  openBtn.addEventListener('click', openConsultant);
+  closeBtn.addEventListener('click', closeConsultant);
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) closeConsultant();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && overlay.classList.contains('open')) {
+      closeConsultant();
+    }
+  });
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const question = input.value.trim();
+    if (!question || sendBtn.disabled) return;
+
+    addMessage('user', question);
+    input.value = '';
+    sendBtn.disabled = true;
+    setStatus('Consultando a IA local...');
+
+    const context = typeof buildGlobalOKRContext === 'function'
+      ? buildGlobalOKRContext()
+      : 'Não foi possível carregar o contexto dos OKRs.';
+
+    const systemPrompt = `Você é o Consultor Estratégico de OKRs da Cria UFMG (Empresa Júnior de Comunicação Social).
+Sua função é analisar estrategicamente o dashboard e construir planos de ação baseados no Planejamento Estratégico.
+
+DIRETRIZES DA CRIA UFMG:
+- Missão: Formar lideranças transformadoras por meio de vivência empresarial, gerando impacto no MEJ, mercado e comunicação.
+- Visão 2026: Ser EJ de excelência (desenvolvimento de pessoas, amadurecimento institucional, eficiência e resultados).
+- 3 Batalhas Estratégicas:
+  1) Jornada na Cria: Permanência > 1 ano, evolução (Operacional > Tático > Estratégico/Instâncias) e engajamento na Rede.
+  2) Desenvolvimento Sustentável: Faturamento, CSAT, Projetos de Impacto (TipCom) e excelência a longo prazo.
+  3) Diversidade e Inclusão: Atração, retenção e desenvolvimento de membros vulnerabilizados e sub-representados.
+
+REGRAS:
+- Responda em português do Brasil. Relacione suas recomendações às 3 Batalhas sempre que fizer sentido.
+- Use somente os dados presentes no contexto; não invente números ou resultados.
+- Diferencie claramente fato dos dados, cálculos e planos de ação recomendados.
+- Considere progresso, prazos e prioridades (ex: foco em membros, faturamento ou tipcom).
+- Seja prático, focado na realidade de jovens empreendedores universitários (MEJ).
+- Se os dados não forem suficientes para responder, diga o que está faltando.
+
+CONTEXTO COMPLETO DOS OKRs:
+${context}`;
+
+    history.push({ role: 'user', content: question });
+
+    try {
+      let liveEl = null;
+      const answer = await callLocalAI(systemPrompt, history, 'global', (piece, fullText) => {
+        if (!liveEl) {
+          liveEl = document.createElement('div');
+          liveEl.className = 'okr-global-msg assistant';
+          messagesEl.appendChild(liveEl);
+        }
+        liveEl.textContent = fullText;
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        setStatus('Gerando resposta...');
+      });
+      if (!liveEl) {
+        addMessage('assistant', answer);
+      }
+      history.push({ role: 'assistant', content: answer });
+      setStatus('Resposta gerada localmente no navegador.');
+    } catch (error) {
+      console.error(error);
+      history.pop();
+      addMessage('assistant',
+        'Não foi possível consultar a IA local. ' +
+        (error && error.message ? error.message : 'Verifique se o navegador possui suporte a WebGPU.'));
+      setStatus('Erro ao consultar a IA local.');
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initGlobalOKRConsultant);
+} else {
+  initGlobalOKRConsultant();
+}
+
+})();
+
+
+
+
+</script>
+
+<!-- ===== CONSULTOR GLOBAL DE OKRs ===== -->
+<button class="okr-global-consultant-btn" id="okrGlobalConsultantBtn" type="button"
+        aria-label="Abrir Consultor de OKRs">
+  💬 Consultor de OKRs
+</button>
+
+<div class="okr-global-consultant-overlay" id="okrGlobalConsultantOverlay"
+     role="dialog" aria-modal="true" aria-labelledby="okrGlobalConsultantTitle">
+  <section class="okr-global-consultant">
+    <header class="okr-global-consultant-header">
+      <div>
+        <div class="okr-global-consultant-title" id="okrGlobalConsultantTitle">Consultor de OKRs</div>
+        <div class="okr-global-consultant-subtitle">IA local · Qwen 2.5 (0.5B - Ultra Leve) · análise de todos os objetivos e KRs</div>
+      </div>
+      <button class="okr-global-consultant-close" id="okrGlobalConsultantClose"
+              type="button" aria-label="Fechar">×</button>
+    </header>
+
+    <div class="okr-global-consultant-status" id="okrGlobalConsultantStatus"></div>
+
+    <div class="okr-global-consultant-messages" id="okrGlobalConsultantMessages">
+      <div class="okr-global-consultant-welcome">
+        Posso analisar o panorama completo dos OKRs, comparar objetivos, identificar KRs
+        atrasados ou críticos, calcular evolução e apontar prioridades.
+        <br><br>
+        <strong>Exemplos:</strong> “Quais KRs estão mais distantes da meta?” ·
+        “Qual objetivo precisa de mais atenção?” ·
+        “Como está o desempenho geral dos OKRs?”
+      </div>
+    </div>
+
+    <form class="okr-global-consultant-input" id="okrGlobalConsultantForm">
+      <textarea id="okrGlobalConsultantInput"
+        placeholder="Pergunte sobre os OKRs..."
+        aria-label="Pergunta para o Consultor de OKRs"></textarea>
+      <button id="okrGlobalConsultantSend" type="submit">Enviar</button>
+    </form>
+  </section>
+</div>
+
+</body>
+</html>
